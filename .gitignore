@@ -1,0 +1,123 @@
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Cachés de herramientas Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+
+# =========================
+# Entornos virtuales (venvs)
+# =========================
+*venv*/
+*.venv*/
+venv/
+.venv/
+env/
+ENV/
+
+# =========================
+# Archivos y carpetas de configuración / secretos (.env)
+# =========================
+.env
+.env.*
+*.env
+!.env.example
+
+
+
+# =========================
+# Cachés y archivos temporales
+# =========================
+.cache/
+*.cache
+*.tmp
+*.temp
+*.ses
+*.swp
+*~
+# =========================
+# Datos locales y regenerables
+# =========================
+# Conservamos en Git la estructura completa de data/. Solo se ignora el
+# contenido regenerable de cachés, resultados y carpetas de vídeos.
+/data/cache/**/*
+!/data/cache/**/
+!/data/cache/**/.gitkeep
+
+/data/outputs/**/*
+!/data/outputs/**/
+!/data/outputs/**/.gitkeep
+
+/data/indexes/**/*
+!/data/indexes/**/
+!/data/indexes/**/.gitkeep
+
+/data/models/**/*
+!/data/models/**/
+!/data/models/**/.gitkeep
+
+/data/state/**/*
+!/data/state/**/
+!/data/state/**/.gitkeep
+
+/data/**/videos/**/*
+!/data/**/videos/**/
+!/data/**/videos/**/.gitkeep
+
+tmp/
+temp/
+
+
+# =========================
+# Logs
+# =========================
+*.log
+
+
+# =========================
+# IDEs / Editores
+# =========================
+.vscode/
+.idea/
+
+
+# =========================
+# Agent skills
+# =========================
+.agents/
+skills-lock.json
+
+/apps/media-web/node_modules/
+/apps/media-web/.next/
+/apps/media-web/tsconfig.tsbuildinfo
+/.media-web/
+/experiments/
+

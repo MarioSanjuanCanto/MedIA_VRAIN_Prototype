@@ -1,0 +1,240 @@
+{
+  "status": "success",
+  "diarization": true,
+  "model_used": "victor-upmeet/whisperx:655845d6190ef70573c669245f245892cd039df4b880a1e3a65852c09252f5cc (Replicate)",
+  "language": "es",
+  "duration": "00:01:29",
+  "duration_seconds": 89.12,
+  "speakers": [
+    "Hablante",
+    "SPEAKER_00",
+    "SPEAKER_01"
+  ],
+  "total_segments": 26,
+  "full_text": "Hola. Y hola. De manera... Estoy haciendo la reunión que me comprometí ayer. Que es de lo que se trata y es como somos la gente de Badajoz. Que son personas que estaban en situación irregular en nuestro país, sino porque los han enviado acá, Bufín B. Les han hecho firmar una carta que han dirigido al presidente de la Generalitat. No saben nada de Badalona, le han enviado una carta al presidente de la Generalitat. Diciendo que es el espacio que ellos han ocupado porque entienden que es el espacio que ellos se merecen. A estas personas y a estas y a otras. No los ocupas. Entonces sigo. Yo, en mi barrio, con mi hija de 13 años los tengo. ¿Quién no me asegura a mí? Eso es lo que te estoy pidiendo. Yo te entiendo, ¿eh? Te entiendo. Y no soy... Tú no puedes entrar, los vecinos tampoco, porque se los cae el pelo. Pero quiero seguridad en el barrio. Más policía en los barrios, de paisano. Lo demostraste, una moto robada en octubre, un patinete robado, bicicleta. Dentro de los Ocupas, sí, sí. ¿Verdad o no? Claro, claro. Pues entonces, dame seguridad en mi barrio y en el barrio de mis vecinos. Vale, pues yo...",
+  "segments": [
+    {
+      "start": "00:00:02",
+      "end": "00:00:03",
+      "start_seconds": 1.83,
+      "end_seconds": 3.43,
+      "speaker": "SPEAKER_01",
+      "text": "Hola."
+    },
+    {
+      "start": "00:00:03",
+      "end": "00:00:07",
+      "start_seconds": 3.49,
+      "end_seconds": 6.79,
+      "speaker": "SPEAKER_01",
+      "text": "Y hola."
+    },
+    {
+      "start": "00:00:08",
+      "end": "00:00:13",
+      "start_seconds": 7.54,
+      "end_seconds": 13.18,
+      "speaker": "SPEAKER_01",
+      "text": "De manera... Estoy haciendo la reunión que me comprometí ayer."
+    },
+    {
+      "start": "00:00:13",
+      "end": "00:00:20",
+      "start_seconds": 13.2,
+      "end_seconds": 19.96,
+      "speaker": "SPEAKER_01",
+      "text": "Que es de lo que se trata y es como somos la gente de Badajoz."
+    },
+    {
+      "start": "00:00:21",
+      "end": "00:00:29",
+      "start_seconds": 20.52,
+      "end_seconds": 29.21,
+      "speaker": "SPEAKER_01",
+      "text": "Que son personas que estaban en situación irregular en nuestro país, sino porque los han enviado acá, Bufín B."
+    },
+    {
+      "start": "00:00:31",
+      "end": "00:00:37",
+      "start_seconds": 30.74,
+      "end_seconds": 37.16,
+      "speaker": "SPEAKER_01",
+      "text": "Les han hecho firmar una carta que han dirigido al presidente de la Generalitat."
+    },
+    {
+      "start": "00:00:37",
+      "end": "00:00:42",
+      "start_seconds": 37.3,
+      "end_seconds": 42.0,
+      "speaker": "SPEAKER_01",
+      "text": "No saben nada de Badalona, le han enviado una carta al presidente de la Generalitat."
+    },
+    {
+      "start": "00:00:42",
+      "end": "00:00:47",
+      "start_seconds": 42.02,
+      "end_seconds": 47.1,
+      "speaker": "SPEAKER_01",
+      "text": "Diciendo que es el espacio que ellos han ocupado porque entienden que es el espacio que ellos se merecen."
+    },
+    {
+      "start": "00:00:50",
+      "end": "00:00:52",
+      "start_seconds": 49.72,
+      "end_seconds": 52.12,
+      "speaker": "SPEAKER_01",
+      "text": "A estas personas y a estas y a otras."
+    },
+    {
+      "start": "00:00:53",
+      "end": "00:00:54",
+      "start_seconds": 53.27,
+      "end_seconds": 54.24,
+      "speaker": "SPEAKER_01",
+      "text": "No los ocupas."
+    },
+    {
+      "start": "00:00:55",
+      "end": "00:00:55",
+      "start_seconds": 54.52,
+      "end_seconds": 55.24,
+      "speaker": "Hablante",
+      "text": "Entonces sigo."
+    },
+    {
+      "start": "00:01:00",
+      "end": "00:01:03",
+      "start_seconds": 60.24,
+      "end_seconds": 62.62,
+      "speaker": "SPEAKER_00",
+      "text": "Yo, en mi barrio, con mi hija de 13 años los tengo."
+    },
+    {
+      "start": "00:01:03",
+      "end": "00:01:04",
+      "start_seconds": 62.64,
+      "end_seconds": 63.97,
+      "speaker": "SPEAKER_00",
+      "text": "¿Quién no me asegura a mí?"
+    },
+    {
+      "start": "00:01:04",
+      "end": "00:01:06",
+      "start_seconds": 64.31,
+      "end_seconds": 66.35,
+      "speaker": "SPEAKER_00",
+      "text": "Eso es lo que te estoy pidiendo."
+    },
+    {
+      "start": "00:01:07",
+      "end": "00:01:08",
+      "start_seconds": 66.67,
+      "end_seconds": 67.57,
+      "speaker": "SPEAKER_00",
+      "text": "Yo te entiendo, ¿eh?"
+    },
+    {
+      "start": "00:01:08",
+      "end": "00:01:08",
+      "start_seconds": 67.85,
+      "end_seconds": 68.33,
+      "speaker": "SPEAKER_00",
+      "text": "Te entiendo."
+    },
+    {
+      "start": "00:01:09",
+      "end": "00:01:10",
+      "start_seconds": 68.73,
+      "end_seconds": 69.57,
+      "speaker": "SPEAKER_00",
+      "text": "Y no soy..."
+    },
+    {
+      "start": "00:01:10",
+      "end": "00:01:13",
+      "start_seconds": 69.59,
+      "end_seconds": 72.52,
+      "speaker": "SPEAKER_00",
+      "text": "Tú no puedes entrar, los vecinos tampoco, porque se los cae el pelo."
+    },
+    {
+      "start": "00:01:13",
+      "end": "00:01:15",
+      "start_seconds": 72.94,
+      "end_seconds": 74.56,
+      "speaker": "SPEAKER_00",
+      "text": "Pero quiero seguridad en el barrio."
+    },
+    {
+      "start": "00:01:15",
+      "end": "00:01:17",
+      "start_seconds": 75.2,
+      "end_seconds": 77.36,
+      "speaker": "SPEAKER_00",
+      "text": "Más policía en los barrios, de paisano."
+    },
+    {
+      "start": "00:01:17",
+      "end": "00:01:21",
+      "start_seconds": 77.4,
+      "end_seconds": 81.45,
+      "speaker": "SPEAKER_00",
+      "text": "Lo demostraste, una moto robada en octubre, un patinete robado, bicicleta."
+    },
+    {
+      "start": "00:01:21",
+      "end": "00:01:23",
+      "start_seconds": 81.47,
+      "end_seconds": 82.99,
+      "speaker": "SPEAKER_01",
+      "text": "Dentro de los Ocupas, sí, sí."
+    },
+    {
+      "start": "00:01:23",
+      "end": "00:01:24",
+      "start_seconds": 83.01,
+      "end_seconds": 83.97,
+      "speaker": "SPEAKER_00",
+      "text": "¿Verdad o no?"
+    },
+    {
+      "start": "00:01:24",
+      "end": "00:01:25",
+      "start_seconds": 83.99,
+      "end_seconds": 85.33,
+      "speaker": "SPEAKER_00",
+      "text": "Claro, claro."
+    },
+    {
+      "start": "00:01:25",
+      "end": "00:01:28",
+      "start_seconds": 85.35,
+      "end_seconds": 88.46,
+      "speaker": "SPEAKER_00",
+      "text": "Pues entonces, dame seguridad en mi barrio y en el barrio de mis vecinos."
+    },
+    {
+      "start": "00:01:28",
+      "end": "00:01:29",
+      "start_seconds": 88.48,
+      "end_seconds": 89.12,
+      "speaker": "SPEAKER_01",
+      "text": "Vale, pues yo..."
+    }
+  ],
+  "id": "TV12",
+  "request_metadata": {
+    "source": [
+      "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV12.mp4",
+      232884157,
+      1788964156715333100
+    ],
+    "language": "es",
+    "diarization": true
+  },
+  "cache_hit": false,
+  "source": "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV12.mp4",
+  "video_file": "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV12.mp4",
+  "video_file_size_mb": 222.1,
+  "title": "TV12 - TV12"
+}

@@ -1,0 +1,114 @@
+{
+  "status": "success",
+  "diarization": true,
+  "model_used": "victor-upmeet/whisperx:655845d6190ef70573c669245f245892cd039df4b880a1e3a65852c09252f5cc (Replicate)",
+  "language": "ca",
+  "duration": "00:01:44",
+  "duration_seconds": 104.02,
+  "speakers": [
+    "SPEAKER_00",
+    "SPEAKER_01",
+    "SPEAKER_02"
+  ],
+  "total_segments": 10,
+  "full_text": "Les jornades van néixer fa quatre anys amb la voluntat d'apropar al món professional els alumnes del cicle superior de còmic amb autors consolidats del sector. Enguany la proposta consta d'un taller de fanzines, diverses xerrades i d'una exposició a l'escola amb obres de Ricard Tefa, Nadia Gafid i Ramon Sarler. Un primer apartat de la Nadia Gafid, un altre del Ricard Tefa i una exposició que és sobre les enotopeies en català. És com expressar les novetats velles en català, és una petita part d'una exposició que havia estat més gran i que ens explica que no tenim que fer servir sempre anglicismes, sinó que el mateix llenguatge català com a utopei ens funciona. Durant les quartes jornades, la il·lustradora i tallerista Lali Rovira és l'encarregada de conduir dues sessions dedicades a la creació de fanzins basades en la seva pròpia experiència. En la primera cita també hi ha participat la il·lustradora Nadia Hafid, Premi Finestres de Còmic en català per Malauló, que ha compartit amb tots els exiuts les claus de la professió. Per a l'autora, el còmic ha estat durant molt de temps considerat com un art menor, una percepció col·lectiva que ha canviat, diu, progressivament en els darrers anys. Durant temps el còmic sí que ha tingut aquesta etiqueta i jo crec que les coses han canviat i a més a més s'ha vist que és un mitjà molt ric i que el còmic no és una cosa estanca i monolítica, sinó que hi ha moltes veus, molt diverses, molts estils i per tant còmics molt més complexos, còmics més senzills, vull dir que hi ha veus de tota mena. La programació continuarà demà amb la segona sessió de fanzine i un col·loqui amb l'autor Ricard Tefa. Paral·lelament, durant els dos dies de les jornades, els entrecoll parades amb material de l'alumnat del cicle i una selecció de còmics a càrrec de la botiga Bacus.",
+  "segments": [
+    {
+      "start": "00:00:01",
+      "end": "00:00:08",
+      "start_seconds": 0.69,
+      "end_seconds": 8.07,
+      "speaker": "SPEAKER_01",
+      "text": "Les jornades van néixer fa quatre anys amb la voluntat d'apropar al món professional els alumnes del cicle superior de còmic amb autors consolidats del sector."
+    },
+    {
+      "start": "00:00:08",
+      "end": "00:00:16",
+      "start_seconds": 8.13,
+      "end_seconds": 16.04,
+      "speaker": "SPEAKER_01",
+      "text": "Enguany la proposta consta d'un taller de fanzines, diverses xerrades i d'una exposició a l'escola amb obres de Ricard Tefa, Nadia Gafid i Ramon Sarler."
+    },
+    {
+      "start": "00:00:16",
+      "end": "00:00:25",
+      "start_seconds": 16.09,
+      "end_seconds": 25.36,
+      "speaker": "SPEAKER_00",
+      "text": "Un primer apartat de la Nadia Gafid, un altre del Ricard Tefa i una exposició que és sobre les enotopeies en català."
+    },
+    {
+      "start": "00:00:26",
+      "end": "00:00:39",
+      "start_seconds": 25.86,
+      "end_seconds": 39.03,
+      "speaker": "SPEAKER_00",
+      "text": "És com expressar les novetats velles en català, és una petita part d'una exposició que havia estat més gran i que ens explica que no tenim que fer servir sempre anglicismes, sinó que el mateix llenguatge català com a utopei ens funciona."
+    },
+    {
+      "start": "00:00:40",
+      "end": "00:00:49",
+      "start_seconds": 39.69,
+      "end_seconds": 48.75,
+      "speaker": "SPEAKER_01",
+      "text": "Durant les quartes jornades, la il·lustradora i tallerista Lali Rovira és l'encarregada de conduir dues sessions dedicades a la creació de fanzins basades en la seva pròpia experiència."
+    },
+    {
+      "start": "00:00:49",
+      "end": "00:00:58",
+      "start_seconds": 48.77,
+      "end_seconds": 58.35,
+      "speaker": "SPEAKER_01",
+      "text": "En la primera cita també hi ha participat la il·lustradora Nadia Hafid, Premi Finestres de Còmic en català per Malauló, que ha compartit amb tots els exiuts les claus de la professió."
+    },
+    {
+      "start": "00:00:58",
+      "end": "00:01:06",
+      "start_seconds": 58.38,
+      "end_seconds": 66.46,
+      "speaker": "SPEAKER_01",
+      "text": "Per a l'autora, el còmic ha estat durant molt de temps considerat com un art menor, una percepció col·lectiva que ha canviat, diu, progressivament en els darrers anys."
+    },
+    {
+      "start": "00:01:07",
+      "end": "00:01:31",
+      "start_seconds": 66.96,
+      "end_seconds": 90.71,
+      "speaker": "SPEAKER_02",
+      "text": "Durant temps el còmic sí que ha tingut aquesta etiqueta i jo crec que les coses han canviat i a més a més s'ha vist que és un mitjà molt ric i que el còmic no és una cosa estanca i monolítica, sinó que hi ha moltes veus, molt diverses, molts estils i per tant còmics molt més complexos, còmics més senzills, vull dir que hi ha veus de tota mena."
+    },
+    {
+      "start": "00:01:31",
+      "end": "00:01:36",
+      "start_seconds": 91.27,
+      "end_seconds": 95.98,
+      "speaker": "SPEAKER_01",
+      "text": "La programació continuarà demà amb la segona sessió de fanzine i un col·loqui amb l'autor Ricard Tefa."
+    },
+    {
+      "start": "00:01:36",
+      "end": "00:01:44",
+      "start_seconds": 96.02,
+      "end_seconds": 104.02,
+      "speaker": "SPEAKER_01",
+      "text": "Paral·lelament, durant els dos dies de les jornades, els entrecoll parades amb material de l'alumnat del cicle i una selecció de còmics a càrrec de la botiga Bacus."
+    }
+  ],
+  "id": "TV11",
+  "source": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV11.mp4",
+  "video_file": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV11.mp4",
+  "request_metadata": {
+    "source": {
+      "algorithm": "sha256",
+      "sha256": "c80811c6ac9271ec81ea23770a73a558776e3af218d9f7fa232520113cac667c",
+      "size": 12814375
+    },
+    "language": "ca",
+    "diarization": true
+  },
+  "cache_hit": false,
+  "cache_validation": "fingerprint",
+  "indexed_in_search": true,
+  "video_file_size_mb": 12.22,
+  "title": "TV11 - TV11"
+}

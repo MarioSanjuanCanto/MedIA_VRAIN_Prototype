@@ -1,0 +1,47 @@
+,,,,,,,
+TTS,,,,,,,
+Orden,Nombre,Licencia,Idiomas,Nota,Enlace a demo,Enlace proveedor 1,Enlace proveedor 2
+1º,Fish Audio S2,CC-BY-NC-SA-4.0,Multilingüe (Entre ellos español y catalán),API key oficial de la compañía,https://fish.audio/es/app/,https://fish.audio/es/app/,-
+2º,Qwen3TTS (Clonación),Apache v2,Multilingüe (Entre ellos español y ~catalán~),Open source y cuenta con API,https://huggingface.co/spaces/Qwen/Qwen3-TTS-Demo,https://fal.ai/explore/search?q=qwen3+TTS,https://replicate.com/qwen/qwen3-tts
+3º,Kokoro 82M v1.0,Apache v2,Multilingüe (Entre ellos español y ~catalán~),Open source y cuenta con API,https://huggingface.co/spaces/igortamara/Kokoro-es-TTS,https://openrouter.ai/hexgrad/kokoro-82m,https://replicate.com/jaaari/kokoro-82m
+4º,Magpie Multilingual 357M,Nvidia open model license,Multilingüe (Entre ellos español y catalán),Open source (no hay apis),https://huggingface.co/nvidia/magpie_tts_multilingual_357m,No econtrado proveedor oficial,No econtrado proveedor oficial
+5º,MOSS-TTS-v1.5,Apache v2,Multilingüe (Entre ellos español y catalán),Open source y cuenta con API,https://huggingface.co/spaces/OpenMOSS-Team/MOSS-TTS-v1.5,https://replicate.com/dessix/moss-ttsd (creo que el proveedor no tiene español),-
+6º,Vibevoice1.5B,Mit License,Inglés y chino (no hace mal español y catalán),Open source y cuento con api,https://huggingface.co/spaces/vibingvoice/vibe-voice-custom-voices,https://fal.ai/models/fal-ai/vibevoice,https://replicate.com/microsoft/vibevoice
+7º,OpenVoice v2 (Clonación),Mit License,Multilingüe (Entre ellos español),Open source y cuento con api,https://huggingface.co/spaces/myshell-ai/OpenVoiceV2,https://replicate.com/ttsds/openvoice_2,-
+-,Gemini3.1 Flash TTS,Modelo propietario de google,Multilingüe (Entre ellos español y catalán),API key oficial de la compañía,https://openrouter.ai/google/gemini-3.1-flash-tts-preview/api,https://openrouter.ai/google/gemini-3.1-flash-tts-preview,https://replicate.com/google/gemini-3.1-flash-tts
+,,,,,,,
+Consultas multimedia,y Adaptación contenido,,,,,,
+Orden,Nombre,Licencia,Enlace a modelo,Enlace proveedor,,,
+1º,Gemma 4 31B (o 12B),Apache v2,https://huggingface.co/google/gemma-4-12B https://huggingface.co/google/gemma-4-31B,https://openrouter.ai/google/gemma-4-31b-it,,,
+2º,MiMo-V2.5,MIT License,https://huggingface.co/XiaomiMiMo/MiMo-V2.5,https://openrouter.ai/xiaomi/mimo-v2.5,,,
+3º,Qwen3.5-27B,Apache v2,https://huggingface.co/Qwen/Qwen3.5-27B,https://openrouter.ai/qwen/qwen3.5-27b,,,
+4º,Lance,Apache v2,https://huggingface.co/bytedance-research/Lance,"No cuenta con proveedor oficial, hay que hostearlo",,,
+,,,,,,,
+,,,,,,,
+Generación de vídeo,,,,,,,
+Orden,Nombre,Licencia,Enlace a modelo,Enlace a proveedor,,,
+1º,kandinsky5-pro,MIT,https://github.com/kandinskylab/kandinsky-5/#kandinsky-50-video-pro,https://fal.ai/models/fal-ai/kandinsky5-pro/text-to-video,,,
+2º,hunyuan-video-1.5,tencent-hunyuan-community,https://huggingface.co/tencent/HunyuanVideo-1.5,https://fal.ai/models/fal-ai/hunyuan-video-v1.5/text-to-video,,,
+3º,Wan2.2-T2V-A14B,Apache v2,https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B,https://replicate.com/wan-video/wan-2.2-i2v-a14b,,,
+4º,LTX-2 (con audio),ltx-2-community-license-agreement,https://huggingface.co/Lightricks/LTX-2,https://fal.ai/models/fal-ai/ltx-2-19b/audio-to-video,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+Generacion Avatares,,,,,,,
+Orden,Nombre,Licencia,Enlace a modelo,Enlace a proveedor,,,
+1º,HunyuanVideo-Avatar,TENCENT HUNYUAN COMMUNITY LICENSE AGREEMENT,https://github.com/Tencent-Hunyuan/HunyuanVideo-Avatar,https://wavespeed.ai/docs/docs-api/wavespeed-ai/hunyuan-avatar,,,
+2º,LAM,Apache v2,https://github.com/aigc3d/LAM,No econtrado API proveedor oficial,,,
+3º,LTX-2 (con audio),ltx-2-community-license-agreement,https://huggingface.co/Lightricks/LTX-2,https://fal.ai/models/fal-ai/ltx-2-19b/audio-to-video,,,
+4º,Longcat Video Avatar 1.5,Mit License,https://huggingface.co/meituan-longcat/LongCat-Video-Avatar-1.5,No econtrado API proveedor oficial,,,
+,,,,,,,
+Transcripción y diarización,,,,,,,
+Orden,Nombre,Tipo,Licencia,Enlace a modelo,Enlace a proveedor,,
+1,WhisperX,Transcripción y diarización,BSD 2-Clause License,https://github.com/m-bain/whisperX,https://replicate.com/victor-upmeet/whisperx,,
+2,faster-whisper + pyannote.audio,Transcripción y diarización,MIT LICENSE ,https://github.com/SYSTRAN/faster-whisper https://github.com/pyannote/pyannote-audio,No econtrado API proveedor oficial,,
+3,Whisper large-v3,Transcripcion ,Apache license 2.0,https://huggingface.co/openai/whisper-large-v3,https://openrouter.ai/openai/whisper-large-v3,,
+4,Mega-ASR,Transcripción,Apache license 2.0,https://github.com/xzf-thu/Mega-ASRhttps://huggingface.co/zhifeixie/Mega-ASR,No encontrado API proveedor oficial,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,
+,,,,,,,

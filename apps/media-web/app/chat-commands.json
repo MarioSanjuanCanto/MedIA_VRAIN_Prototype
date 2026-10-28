@@ -1,0 +1,74 @@
+{
+  "/clips-todos": {
+    "description": "Busca visualmente todas las apariciones y extrae sus clips",
+    "usage": "/clips-todos <vídeo> <qué buscar>",
+    "emptyInput": "TV05 personas mayores",
+    "prompt": "{{input}}"
+  },
+  "/resumir": {
+    "description": "Resume un vídeo con Media Core.",
+    "usage": "/resumir <vídeo pedido por el usuario>",
+    "prompt": "Usa exclusivamente media-core y media_summarize para resumir el vídeo indicado. Petición del usuario: {{input}}",
+    "emptyInput": "No se ha indicado el vídeo; pide únicamente su identificador."
+  },
+  "/transcribir": {
+    "description": "Transcribe e indexa un vídeo.",
+    "usage": "/transcribir <vídeo pedido por el usuario>",
+    "prompt": "Usa exclusivamente media-core y media_transcribe para transcribir e indexar el vídeo indicado. Petición del usuario: {{input}}",
+    "emptyInput": "No se ha indicado el vídeo; pide únicamente su identificador."
+  },
+  "/buscar": {
+    "description": "Busca un tema en las transcripciones.",
+    "usage": "/buscar <vídeo pedido por el usuario> <tema>",
+    "prompt": "Usa exclusivamente media-core y media_search para buscar el tema indicado en las transcripciones. Petición del usuario: {{input}}",
+    "emptyInput": "No se han indicado el vídeo o el tema; pide únicamente los datos imprescindibles."
+  },
+  "/clip": {
+    "description": "Localiza y extrae un único clip.",
+    "usage": "/clip <vídeo pedido por el usuario> <tema>",
+    "prompt": "Usa exclusivamente media-core y media_clips para entregar un único clip verificable sobre el tema indicado. Petición del usuario: {{input}}",
+    "emptyInput": "No se han indicado el vídeo o el tema; pide únicamente los datos imprescindibles."
+  },
+  "/audio": {
+    "description": "Genera una locución con Piper.",
+    "usage": "/audio <idioma> <texto para locutar>",
+    "prompt": "Usa exclusivamente media-core y media_tts con provider=piper para generar una única locución. Petición del usuario: {{input}}",
+    "emptyInput": "No se ha indicado el texto; pide únicamente el texto que debe locutarse."
+  },
+  "/describir": {
+    "description": "Describe una escena o fotograma.",
+    "usage": "/describir <vídeo pedido por el usuario> <momento>",
+    "prompt": "Usa exclusivamente media-core y media_describe_scene para describir la escena indicada. Petición del usuario: {{input}}",
+    "emptyInput": "No se han indicado el vídeo o el momento; pide únicamente los datos imprescindibles."
+  },
+  "/estado": {
+    "description": "Comprueba Media API, Media Core y MedIA.",
+    "usage": "/estado",
+    "prompt": "Usa get_server_info de media-core y resume su estado operativo sin inventar datos.",
+    "emptyInput": ""
+  },
+  "/videos": {
+    "description": "Muestra los vídeos disponibles.",
+    "usage": "/videos",
+    "prompt": "Muestra los vídeos disponibles.",
+    "emptyInput": ""
+  },
+  "/reasoning": {
+    "description": "Consulta o cambia la fuerza de razonamiento.",
+    "usage": "/reasoning <minimal|low|medium|high|xhigh|max>",
+    "prompt": "Cambia la fuerza de razonamiento de MedIA.",
+    "emptyInput": ""
+  },
+  "/new": {
+    "description": "Inicia una conversación nueva.",
+    "usage": "/new",
+    "prompt": "Inicia una conversación nueva.",
+    "emptyInput": ""
+  },
+  "/ayuda": {
+    "description": "Explica los comandos disponibles.",
+    "usage": "/ayuda",
+    "prompt": "Muestra únicamente una lista breve de los comandos de MedIA y su función. No consultes herramientas ni menciones servidores, versiones, endpoints, errores técnicos o el historial de la conversación.",
+    "emptyInput": ""
+  }
+}

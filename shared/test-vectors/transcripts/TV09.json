@@ -1,0 +1,411 @@
+{
+  "status": "success",
+  "diarization": true,
+  "model_used": "victor-upmeet/whisperx:655845d6190ef70573c669245f245892cd039df4b880a1e3a65852c09252f5cc (Replicate)",
+  "language": "fr",
+  "duration": "00:05:18",
+  "duration_seconds": 318.23,
+  "speakers": [
+    "SPEAKER_00",
+    "SPEAKER_01",
+    "SPEAKER_02",
+    "SPEAKER_03"
+  ],
+  "total_segments": 47,
+  "full_text": "Il s'agit de l'adaptation du roman de Constance Debré, du même nom, Love Me Tender. C'est un livre qui est sorti en 2020 et que j'avais lu pour moi dès sa sortie. parce que le sujet m'intéressait. J'étais jeune maman à ce moment-là, le livre semblait aborder des thèmes qui me sont chers. Et effectivement, c'est un livre qui m'avait bouleversée, que j'avais rangé dans ma bibliothèque comme ça. Et deux ans plus tard, les producteurs de Vaux-Pré-de-Cinéma m'ont proposé l'adaptation. Et j'ai pensé que si le livre venait dans ma vie comme ça, c'est que c'était un signe. Je me suis dit que c'était une chance. Une chance aussi parce que c'est une organisation qui permet de montrer le film gratuitement un peu partout en Europe. Moi, j'ai à cœur que nos films, et que nos films d'auteurs en particulier, puissent parvenir à des gens qui n'auraient peut-être pas cette habitude-là du cinéma en salle. Je me faisais une joie à cette idée-là, l'idée que le film puisse comme ça être quand même une aide pour qu'il soit montré dans tous les pays d'Europe, et donc de pouvoir toucher des publics qui ont des parcours différents, des histoires différentes. Les conversations à la suite des projections tournent un peu toujours autour des mêmes choses, à savoir l'injustice, l'injustice que traverse mon personnage. Je crois que le film a ça d'universel, que si on est parent, mais si on est aussi enfant de parents divorcés, si on est une personne queer ou pas, mais à partir du moment où on a un lien avec l'enfance, et je crois qu'on en a tous un, on peut s'identifier au parcours de mon personnage. et venir se poser la question avec elles. Aujourd'hui, on a des familles qui ont des géométries variables. On fait famille différemment d'il y a 100 ans et je crois que l'Europe a quelque chose à défendre là-dedans. On voit que le droit des personnes homosexuelles et des parents homosexuels reculent dans plusieurs pays d'Europe. Et en ça, mon film, oui, vient re-questionner tout ça. Je pense que le cinéma a un rôle important parce qu'il a une force, une grande force. Le médium cinéma a une force, une puissance en fait qui dépasse beaucoup de médiums artistiques. On est dans une société de l'image, on est... consomment tous énormément d'images, de films, de séries. Alors, en salle, c'est effectivement le mieux. En tout cas, moi, c'est ce que je défends. Mais sur les plateformes aussi, aujourd'hui, les gens ont une immense culture de l'image. Et le cinéma véhicule une pensée, permet des représentations, permet des identifications à des personnages. Et donc, en ça, le cinéma a aussi une responsabilité. Ça me donne une visibilité qui est difficile à avoir aujourd'hui, d'être distribuée dans tous ces pays, et notamment... quand on a un film qui est à ce point politique en fait. Le personnage de mon film est un personnage de femme, de mère, de personne lesbienne, d'artiste. Mine de rien, c'est pas les personnages les plus faciles à défendre aujourd'hui. Et donc l'idée de pouvoir aller sur des territoires où il aurait été très difficile d'être projeté, Ça, c'est une immense joie. J'ai été projetée de façon secrète dans des festivals secrets en Chine, interdits, pas pour secret, je veux dire interdits, en Russie. Et donc, je pense que oui, en tout cas, c'est pour ça qu'on fait du cinéma. Je crois que ça remet les choses à leur place. Merci. Nous devions à l'origine avoir un débat après le film et vous allez voir le film susciter beaucoup d'interrogations et pourrait susciter beaucoup de questions de votre part. Mais on prendra le temps de discuter avec Anna et Christy avant le film pour que vous puissiez quand même avoir leur regard qui guidera le vôtre ensuite pour la projection. Très rapidement, comme je le disais, c'est la troisième projection dans le cadre du prix Luxe. Il y en aura une quatrième. C'est vraiment un plaisir d'être dans cette très belle salle de cinéma pour promouvoir le cinéma européen, le cinéma indépendant. Qu'est-ce qui vous a amené à porter ce livre ? à l'image et au cinéma. Quand j'ai lu ce livre, j'ai eu l'impression d'entendre une voix que j'avais encore jamais entendue, une voix de femme que j'avais pas entendue, et une voix de mère aussi que j'avais jamais entendue. C'est un livre qui m'a beaucoup marquée, et puis je l'ai laissé de côté dans ma bibliothèque, et deux ans après, on m'en a proposé l'adaptation. C'est vrai que très tôt, on a des conversations autour de l'esthétique et de l'écriture, et puis bon, après, matin, nuit, jour...",
+  "segments": [
+    {
+      "start": "00:00:29",
+      "end": "00:00:33",
+      "start_seconds": 28.58,
+      "end_seconds": 32.52,
+      "speaker": "SPEAKER_01",
+      "text": "Il s'agit de l'adaptation du roman de Constance Debré, du même nom, Love Me Tender."
+    },
+    {
+      "start": "00:00:33",
+      "end": "00:00:37",
+      "start_seconds": 32.56,
+      "end_seconds": 37.19,
+      "speaker": "SPEAKER_01",
+      "text": "C'est un livre qui est sorti en 2020 et que j'avais lu pour moi dès sa sortie."
+    },
+    {
+      "start": "00:00:38",
+      "end": "00:00:40",
+      "start_seconds": 37.84,
+      "end_seconds": 39.94,
+      "speaker": "SPEAKER_01",
+      "text": "parce que le sujet m'intéressait."
+    },
+    {
+      "start": "00:00:40",
+      "end": "00:00:47",
+      "start_seconds": 39.96,
+      "end_seconds": 46.94,
+      "speaker": "SPEAKER_01",
+      "text": "J'étais jeune maman à ce moment-là, le livre semblait aborder des thèmes qui me sont chers."
+    },
+    {
+      "start": "00:00:49",
+      "end": "00:00:52",
+      "start_seconds": 48.58,
+      "end_seconds": 52.43,
+      "speaker": "SPEAKER_01",
+      "text": "Et effectivement, c'est un livre qui m'avait bouleversée, que j'avais rangé dans ma bibliothèque comme ça."
+    },
+    {
+      "start": "00:00:52",
+      "end": "00:00:58",
+      "start_seconds": 52.47,
+      "end_seconds": 57.91,
+      "speaker": "SPEAKER_01",
+      "text": "Et deux ans plus tard, les producteurs de Vaux-Pré-de-Cinéma m'ont proposé l'adaptation."
+    },
+    {
+      "start": "00:00:58",
+      "end": "00:01:02",
+      "start_seconds": 57.95,
+      "end_seconds": 62.27,
+      "speaker": "SPEAKER_01",
+      "text": "Et j'ai pensé que si le livre venait dans ma vie comme ça, c'est que c'était un signe."
+    },
+    {
+      "start": "00:01:03",
+      "end": "00:01:04",
+      "start_seconds": 62.99,
+      "end_seconds": 64.47,
+      "speaker": "SPEAKER_01",
+      "text": "Je me suis dit que c'était une chance."
+    },
+    {
+      "start": "00:01:05",
+      "end": "00:01:11",
+      "start_seconds": 64.53,
+      "end_seconds": 71.41,
+      "speaker": "SPEAKER_01",
+      "text": "Une chance aussi parce que c'est une organisation qui permet de montrer le film gratuitement un peu partout en Europe."
+    },
+    {
+      "start": "00:01:12",
+      "end": "00:01:21",
+      "start_seconds": 71.77,
+      "end_seconds": 80.6,
+      "speaker": "SPEAKER_01",
+      "text": "Moi, j'ai à cœur que nos films, et que nos films d'auteurs en particulier, puissent parvenir à des gens qui n'auraient peut-être pas cette habitude-là du cinéma en salle."
+    },
+    {
+      "start": "00:01:21",
+      "end": "00:01:33",
+      "start_seconds": 80.84,
+      "end_seconds": 93.03,
+      "speaker": "SPEAKER_01",
+      "text": "Je me faisais une joie à cette idée-là, l'idée que le film puisse comme ça être quand même une aide pour qu'il soit montré dans tous les pays d'Europe, et donc de pouvoir toucher des publics qui ont des parcours différents, des histoires différentes."
+    },
+    {
+      "start": "00:01:34",
+      "end": "00:01:43",
+      "start_seconds": 93.59,
+      "end_seconds": 103.41,
+      "speaker": "SPEAKER_01",
+      "text": "Les conversations à la suite des projections tournent un peu toujours autour des mêmes choses, à savoir l'injustice, l'injustice que traverse mon personnage."
+    },
+    {
+      "start": "00:01:43",
+      "end": "00:02:01",
+      "start_seconds": 103.43,
+      "end_seconds": 121.09,
+      "speaker": "SPEAKER_01",
+      "text": "Je crois que le film a ça d'universel, que si on est parent, mais si on est aussi enfant de parents divorcés, si on est une personne queer ou pas, mais à partir du moment où on a un lien avec l'enfance, et je crois qu'on en a tous un, on peut s'identifier au parcours de mon personnage."
+    },
+    {
+      "start": "00:02:02",
+      "end": "00:02:04",
+      "start_seconds": 122.13,
+      "end_seconds": 123.55,
+      "speaker": "SPEAKER_01",
+      "text": "et venir se poser la question avec elles."
+    },
+    {
+      "start": "00:02:04",
+      "end": "00:02:09",
+      "start_seconds": 123.57,
+      "end_seconds": 128.51,
+      "speaker": "SPEAKER_01",
+      "text": "Aujourd'hui, on a des familles qui ont des géométries variables."
+    },
+    {
+      "start": "00:02:09",
+      "end": "00:02:16",
+      "start_seconds": 128.55,
+      "end_seconds": 136.15,
+      "speaker": "SPEAKER_01",
+      "text": "On fait famille différemment d'il y a 100 ans et je crois que l'Europe a quelque chose à défendre là-dedans."
+    },
+    {
+      "start": "00:02:16",
+      "end": "00:02:22",
+      "start_seconds": 136.21,
+      "end_seconds": 142.36,
+      "speaker": "SPEAKER_01",
+      "text": "On voit que le droit des personnes homosexuelles et des parents homosexuels reculent dans plusieurs pays d'Europe."
+    },
+    {
+      "start": "00:02:22",
+      "end": "00:02:27",
+      "start_seconds": 142.4,
+      "end_seconds": 146.62,
+      "speaker": "SPEAKER_01",
+      "text": "Et en ça, mon film, oui, vient re-questionner tout ça."
+    },
+    {
+      "start": "00:02:28",
+      "end": "00:02:34",
+      "start_seconds": 147.51,
+      "end_seconds": 153.9,
+      "speaker": "SPEAKER_01",
+      "text": "Je pense que le cinéma a un rôle important parce qu'il a une force, une grande force."
+    },
+    {
+      "start": "00:02:34",
+      "end": "00:02:40",
+      "start_seconds": 153.92,
+      "end_seconds": 159.85,
+      "speaker": "SPEAKER_01",
+      "text": "Le médium cinéma a une force, une puissance en fait qui dépasse beaucoup de médiums artistiques."
+    },
+    {
+      "start": "00:02:40",
+      "end": "00:02:42",
+      "start_seconds": 159.91,
+      "end_seconds": 161.59,
+      "speaker": "SPEAKER_01",
+      "text": "On est dans une société de l'image, on est..."
+    },
+    {
+      "start": "00:02:43",
+      "end": "00:02:45",
+      "start_seconds": 162.57,
+      "end_seconds": 165.46,
+      "speaker": "SPEAKER_01",
+      "text": "consomment tous énormément d'images, de films, de séries."
+    },
+    {
+      "start": "00:02:45",
+      "end": "00:02:48",
+      "start_seconds": 165.5,
+      "end_seconds": 167.86,
+      "speaker": "SPEAKER_01",
+      "text": "Alors, en salle, c'est effectivement le mieux."
+    },
+    {
+      "start": "00:02:48",
+      "end": "00:02:50",
+      "start_seconds": 167.9,
+      "end_seconds": 169.54,
+      "speaker": "SPEAKER_01",
+      "text": "En tout cas, moi, c'est ce que je défends."
+    },
+    {
+      "start": "00:02:50",
+      "end": "00:02:55",
+      "start_seconds": 169.58,
+      "end_seconds": 174.99,
+      "speaker": "SPEAKER_01",
+      "text": "Mais sur les plateformes aussi, aujourd'hui, les gens ont une immense culture de l'image."
+    },
+    {
+      "start": "00:02:55",
+      "end": "00:03:02",
+      "start_seconds": 175.04,
+      "end_seconds": 182.41,
+      "speaker": "SPEAKER_01",
+      "text": "Et le cinéma véhicule une pensée, permet des représentations, permet des identifications à des personnages."
+    },
+    {
+      "start": "00:03:02",
+      "end": "00:03:06",
+      "start_seconds": 182.45,
+      "end_seconds": 186.12,
+      "speaker": "SPEAKER_01",
+      "text": "Et donc, en ça, le cinéma a aussi une responsabilité."
+    },
+    {
+      "start": "00:03:06",
+      "end": "00:03:11",
+      "start_seconds": 186.13,
+      "end_seconds": 191.44,
+      "speaker": "SPEAKER_01",
+      "text": "Ça me donne une visibilité qui est difficile à avoir aujourd'hui, d'être distribuée dans tous ces pays, et notamment..."
+    },
+    {
+      "start": "00:03:12",
+      "end": "00:03:16",
+      "start_seconds": 192.35,
+      "end_seconds": 195.73,
+      "speaker": "SPEAKER_01",
+      "text": "quand on a un film qui est à ce point politique en fait."
+    },
+    {
+      "start": "00:03:17",
+      "end": "00:03:23",
+      "start_seconds": 197.01,
+      "end_seconds": 202.95,
+      "speaker": "SPEAKER_01",
+      "text": "Le personnage de mon film est un personnage de femme, de mère, de personne lesbienne, d'artiste."
+    },
+    {
+      "start": "00:03:23",
+      "end": "00:03:28",
+      "start_seconds": 202.97,
+      "end_seconds": 207.58,
+      "speaker": "SPEAKER_01",
+      "text": "Mine de rien, c'est pas les personnages les plus faciles à défendre aujourd'hui."
+    },
+    {
+      "start": "00:03:28",
+      "end": "00:03:31",
+      "start_seconds": 207.62,
+      "end_seconds": 211.02,
+      "speaker": "SPEAKER_01",
+      "text": "Et donc l'idée de pouvoir aller sur des territoires où il aurait été très difficile d'être projeté,"
+    },
+    {
+      "start": "00:03:32",
+      "end": "00:03:33",
+      "start_seconds": 211.78,
+      "end_seconds": 213.42,
+      "speaker": "SPEAKER_01",
+      "text": "Ça, c'est une immense joie."
+    },
+    {
+      "start": "00:03:33",
+      "end": "00:03:42",
+      "start_seconds": 213.44,
+      "end_seconds": 222.49,
+      "speaker": "SPEAKER_01",
+      "text": "J'ai été projetée de façon secrète dans des festivals secrets en Chine, interdits, pas pour secret, je veux dire interdits, en Russie."
+    },
+    {
+      "start": "00:03:43",
+      "end": "00:03:45",
+      "start_seconds": 222.53,
+      "end_seconds": 225.46,
+      "speaker": "SPEAKER_01",
+      "text": "Et donc, je pense que oui, en tout cas, c'est pour ça qu'on fait du cinéma."
+    },
+    {
+      "start": "00:03:45",
+      "end": "00:03:48",
+      "start_seconds": 225.48,
+      "end_seconds": 227.96,
+      "speaker": "SPEAKER_01",
+      "text": "Je crois que ça remet les choses à leur place."
+    },
+    {
+      "start": "00:03:51",
+      "end": "00:03:51",
+      "start_seconds": 230.97,
+      "end_seconds": 231.1,
+      "speaker": "SPEAKER_03",
+      "text": "Merci."
+    },
+    {
+      "start": "00:04:09",
+      "end": "00:04:21",
+      "start_seconds": 249.12,
+      "end_seconds": 260.83,
+      "speaker": "SPEAKER_02",
+      "text": "Nous devions à l'origine avoir un débat après le film et vous allez voir le film susciter beaucoup d'interrogations et pourrait susciter beaucoup de questions de votre part."
+    },
+    {
+      "start": "00:04:21",
+      "end": "00:04:29",
+      "start_seconds": 260.85,
+      "end_seconds": 269.43,
+      "speaker": "SPEAKER_02",
+      "text": "Mais on prendra le temps de discuter avec Anna et Christy avant le film pour que vous puissiez quand même avoir leur regard qui guidera le vôtre ensuite pour la projection."
+    },
+    {
+      "start": "00:04:31",
+      "end": "00:04:34",
+      "start_seconds": 270.62,
+      "end_seconds": 274.34,
+      "speaker": "SPEAKER_02",
+      "text": "Très rapidement, comme je le disais, c'est la troisième projection dans le cadre du prix Luxe."
+    },
+    {
+      "start": "00:04:34",
+      "end": "00:04:36",
+      "start_seconds": 274.38,
+      "end_seconds": 275.66,
+      "speaker": "SPEAKER_02",
+      "text": "Il y en aura une quatrième."
+    },
+    {
+      "start": "00:04:36",
+      "end": "00:04:47",
+      "start_seconds": 275.78,
+      "end_seconds": 286.87,
+      "speaker": "SPEAKER_00",
+      "text": "C'est vraiment un plaisir d'être dans cette très belle salle de cinéma pour promouvoir le cinéma européen, le cinéma indépendant."
+    },
+    {
+      "start": "00:04:47",
+      "end": "00:04:51",
+      "start_seconds": 286.89,
+      "end_seconds": 290.94,
+      "speaker": "SPEAKER_02",
+      "text": "Qu'est-ce qui vous a amené à porter ce livre ?"
+    },
+    {
+      "start": "00:04:52",
+      "end": "00:04:53",
+      "start_seconds": 291.71,
+      "end_seconds": 292.78,
+      "speaker": "SPEAKER_02",
+      "text": "à l'image et au cinéma."
+    },
+    {
+      "start": "00:04:53",
+      "end": "00:05:02",
+      "start_seconds": 292.8,
+      "end_seconds": 302.28,
+      "speaker": "SPEAKER_01",
+      "text": "Quand j'ai lu ce livre, j'ai eu l'impression d'entendre une voix que j'avais encore jamais entendue, une voix de femme que j'avais pas entendue, et une voix de mère aussi que j'avais jamais entendue."
+    },
+    {
+      "start": "00:05:03",
+      "end": "00:05:10",
+      "start_seconds": 302.64,
+      "end_seconds": 309.69,
+      "speaker": "SPEAKER_01",
+      "text": "C'est un livre qui m'a beaucoup marquée, et puis je l'ai laissé de côté dans ma bibliothèque, et deux ans après, on m'en a proposé l'adaptation."
+    },
+    {
+      "start": "00:05:10",
+      "end": "00:05:18",
+      "start_seconds": 310.21,
+      "end_seconds": 318.23,
+      "speaker": "SPEAKER_01",
+      "text": "C'est vrai que très tôt, on a des conversations autour de l'esthétique et de l'écriture, et puis bon, après, matin, nuit, jour..."
+    }
+  ],
+  "id": "TV09",
+  "source": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV09.mp4",
+  "video_file": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV09.mp4",
+  "request_metadata": {
+    "source": {
+      "algorithm": "sha256",
+      "sha256": "3ebe4fb576552be28bbab8ad37f516f115255504b6e1538bdde125738d1685ea",
+      "size": 701510050
+    },
+    "language": "fr",
+    "diarization": true
+  },
+  "cache_hit": false,
+  "cache_validation": "fingerprint",
+  "indexed_in_search": true,
+  "video_file_size_mb": 669.01,
+  "title": "TV09 - TV09"
+}

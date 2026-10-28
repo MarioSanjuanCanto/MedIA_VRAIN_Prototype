@@ -1,0 +1,120 @@
+{
+  "status": "success",
+  "diarization": true,
+  "model_used": "victor-upmeet/whisperx:655845d6190ef70573c669245f245892cd039df4b880a1e3a65852c09252f5cc (Replicate)",
+  "language": "es",
+  "duration": "00:01:28",
+  "duration_seconds": 87.8,
+  "speakers": [
+    "SPEAKER_00"
+  ],
+  "total_segments": 11,
+  "full_text": "Tenemos en alerta el plan Bencat. Hay una nueva ventaja de Mestral y de Ponent que nos afectará sobre todo el dígito a partir de las 6 de la mañana hasta la tarde, hasta el viernes. Esta ventaja nos la hará sobre todo en la zona del Campo de Tarragona. del litoral y pre-litoral de las comarcas de Tarragona, Terras de l'Ebre, también del sur de Barcelona y también las cotas medias y altas del Pirineo y Pre-Pirineo. Tendremos esta ventana todo dígito y de cara al viernes, de cara a la noche, irá fluyendo, de forma que el viernes del día de ayer todavía tendremos alguna racha de viento, pero ya fluyendo claramente y finalizando este episodio. También nevará el Pirineo, tendremos nevadas alrededor de los 10 centímetros, esta posibilidad de 10 centímetros a más de 1.500 metros. Hay que tener en cuenta mucho el fenómeno del torpe, recordemos, esta situación en la que neva y también a la hora y al viento y produce esta dificultad en la visibilidad y también esta sensación de frío que puede ser dificultosa y provocar accidentes en zonas de alta montaña. Por tanto, también recomendamos ser muy cuidadosos con esta situación y no hacer actividades fuera de zonas controladas. Y esta alerta esperamos que nos dure hasta el viernes y a partir de ese momento la información que tenemos es que parece que podremos tener la entrada de un anticicló que nos dará un poco más de tranquilidad meteorológica.",
+  "segments": [
+    {
+      "start": "00:00:01",
+      "end": "00:00:02",
+      "start_seconds": 0.63,
+      "end_seconds": 2.31,
+      "speaker": "SPEAKER_00",
+      "text": "Tenemos en alerta el plan Bencat."
+    },
+    {
+      "start": "00:00:03",
+      "end": "00:00:14",
+      "start_seconds": 2.65,
+      "end_seconds": 13.61,
+      "speaker": "SPEAKER_00",
+      "text": "Hay una nueva ventaja de Mestral y de Ponent que nos afectará sobre todo el dígito a partir de las 6 de la mañana hasta la tarde, hasta el viernes."
+    },
+    {
+      "start": "00:00:14",
+      "end": "00:00:17",
+      "start_seconds": 13.63,
+      "end_seconds": 16.93,
+      "speaker": "SPEAKER_00",
+      "text": "Esta ventaja nos la hará sobre todo en la zona del Campo de Tarragona."
+    },
+    {
+      "start": "00:00:17",
+      "end": "00:00:27",
+      "start_seconds": 17.37,
+      "end_seconds": 26.75,
+      "speaker": "SPEAKER_00",
+      "text": "del litoral y pre-litoral de las comarcas de Tarragona, Terras de l'Ebre, también del sur de Barcelona y también las cotas medias y altas del Pirineo y Pre-Pirineo."
+    },
+    {
+      "start": "00:00:28",
+      "end": "00:00:42",
+      "start_seconds": 28.1,
+      "end_seconds": 42.38,
+      "speaker": "SPEAKER_00",
+      "text": "Tendremos esta ventana todo dígito y de cara al viernes, de cara a la noche, irá fluyendo, de forma que el viernes del día de ayer todavía tendremos alguna racha de viento, pero ya fluyendo claramente y finalizando este episodio."
+    },
+    {
+      "start": "00:00:44",
+      "end": "00:00:45",
+      "start_seconds": 43.52,
+      "end_seconds": 45.4,
+      "speaker": "SPEAKER_00",
+      "text": "También nevará el Pirineo, tendremos nevadas"
+    },
+    {
+      "start": "00:00:46",
+      "end": "00:00:51",
+      "start_seconds": 45.88,
+      "end_seconds": 51.44,
+      "speaker": "SPEAKER_00",
+      "text": "alrededor de los 10 centímetros, esta posibilidad de 10 centímetros a más de 1.500 metros."
+    },
+    {
+      "start": "00:00:51",
+      "end": "00:01:03",
+      "start_seconds": 51.46,
+      "end_seconds": 62.99,
+      "speaker": "SPEAKER_00",
+      "text": "Hay que tener en cuenta mucho el fenómeno del torpe, recordemos, esta situación en la que neva y también a la hora y al viento y produce esta dificultad en la visibilidad y también esta sensación de frío"
+    },
+    {
+      "start": "00:01:04",
+      "end": "00:01:08",
+      "start_seconds": 63.59,
+      "end_seconds": 68.0,
+      "speaker": "SPEAKER_00",
+      "text": "que puede ser dificultosa y provocar accidentes en zonas de alta montaña."
+    },
+    {
+      "start": "00:01:08",
+      "end": "00:01:15",
+      "start_seconds": 68.38,
+      "end_seconds": 75.5,
+      "speaker": "SPEAKER_00",
+      "text": "Por tanto, también recomendamos ser muy cuidadosos con esta situación y no hacer actividades fuera de zonas controladas."
+    },
+    {
+      "start": "00:01:16",
+      "end": "00:01:28",
+      "start_seconds": 76.02,
+      "end_seconds": 87.8,
+      "speaker": "SPEAKER_00",
+      "text": "Y esta alerta esperamos que nos dure hasta el viernes y a partir de ese momento la información que tenemos es que parece que podremos tener la entrada de un anticicló que nos dará un poco más de tranquilidad meteorológica."
+    }
+  ],
+  "id": "TV02",
+  "source": "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV02.mp4",
+  "video_file": "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV02.mp4",
+  "request_metadata": {
+    "source": [
+      "C:\\Users\\jlina\\Desktop\\Watchity\\experiments_watchity\\experiments\\test_vectors\\videos\\TV02.mp4",
+      93304608,
+      1789035651183751700
+    ],
+    "language": "es",
+    "diarization": true
+  },
+  "cache_hit": false,
+  "cache_validation": "fingerprint",
+  "indexed_in_search": true,
+  "video_file_size_mb": 88.98,
+  "title": "TV02 - TV02"
+}

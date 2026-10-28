@@ -1,0 +1,712 @@
+{
+  "status": "success",
+  "diarization": false,
+  "model_used": "victor-upmeet/whisperx:655845d6190ef70573c669245f245892cd039df4b880a1e3a65852c09252f5cc (Replicate)",
+  "language": "en",
+  "duration": "00:09:52",
+  "duration_seconds": 592.3,
+  "speakers": [
+    "Hablante"
+  ],
+  "total_segments": 85,
+  "full_text": "Roger, roger. We have main engine start. Four, three, You're a jerk, Tom. Look, Celia, we have to follow our passions. You have your robotics, and I just want to be awesome in space. Why don't you just admit that you're freaked out by my robot hand? I'm not freaked out by it. All right, fine. I'm freaked out. I'm having nightmares that I'm being chased by these giant robotic claws. Whatever, Tom. We're done. Robot's memory synced and... This is pretty funny. Shouldn't you be down there? I heard you guys talking last night. It's not my fault. Are you ready? Of course you're ready. You're a rock star. How's it looking, Barley? We should have about ten minutes. Well, that's perfect. We're only one. All systems go! Yeah, you, go! Go! Move your asses! Go, go, go! I love it! Come on! Goal! That's nice. Nothing to worry about. Tom! Tom, there she is. Now, you'll love her. She's your passion. Be tender to her. Be honest. Be tender. Remind her what love is. And... Action! Memory override in progress! You're a jerk, Tom! Oh, I'm sorry! Sorry. Sorry. Look, Celia, we have to follow our passions. You have your robotics. And I just want to be awesome in space. Get her coming. Two minutes left. Two minutes. Why don't you just admit that you're freaked out by my robot hand? Listen, Celia. I was young. And a dick. But there's no reason to destroy the world. Why does he do this? We already tried that one. No! No! You broke my heart. I know. You forgot me on Earth. I know. I should just crush you. I'm... I'm sorry. Who's that, Lip? Not my fault! There's time. Quiet on set. We're out of time, we're out of time! Come on! Thank you. Captain, we have to abort! The world's changed, Celia. Memory override complete! You know... There's a lesson to be learned from this. Could've gone worse. Thank you.",
+  "segments": [
+    {
+      "start": "00:00:02",
+      "end": "00:00:03",
+      "start_seconds": 2.39,
+      "end_seconds": 3.27,
+      "speaker": "Hablante",
+      "text": "Roger, roger."
+    },
+    {
+      "start": "00:00:05",
+      "end": "00:00:06",
+      "start_seconds": 4.71,
+      "end_seconds": 6.31,
+      "speaker": "Hablante",
+      "text": "We have main engine start."
+    },
+    {
+      "start": "00:00:07",
+      "end": "00:00:08",
+      "start_seconds": 6.87,
+      "end_seconds": 7.89,
+      "speaker": "Hablante",
+      "text": "Four, three,"
+    },
+    {
+      "start": "00:00:23",
+      "end": "00:00:24",
+      "start_seconds": 23.38,
+      "end_seconds": 24.38,
+      "speaker": "Hablante",
+      "text": "You're a jerk, Tom."
+    },
+    {
+      "start": "00:00:24",
+      "end": "00:00:27",
+      "start_seconds": 24.46,
+      "end_seconds": 26.94,
+      "speaker": "Hablante",
+      "text": "Look, Celia, we have to follow our passions."
+    },
+    {
+      "start": "00:00:27",
+      "end": "00:00:30",
+      "start_seconds": 27.3,
+      "end_seconds": 30.0,
+      "speaker": "Hablante",
+      "text": "You have your robotics, and I just want to be awesome in space."
+    },
+    {
+      "start": "00:00:31",
+      "end": "00:00:34",
+      "start_seconds": 30.66,
+      "end_seconds": 34.33,
+      "speaker": "Hablante",
+      "text": "Why don't you just admit that you're freaked out by my robot hand?"
+    },
+    {
+      "start": "00:00:35",
+      "end": "00:00:36",
+      "start_seconds": 34.77,
+      "end_seconds": 35.87,
+      "speaker": "Hablante",
+      "text": "I'm not freaked out by it."
+    },
+    {
+      "start": "00:00:38",
+      "end": "00:00:38",
+      "start_seconds": 37.63,
+      "end_seconds": 38.35,
+      "speaker": "Hablante",
+      "text": "All right, fine."
+    },
+    {
+      "start": "00:00:39",
+      "end": "00:00:39",
+      "start_seconds": 38.69,
+      "end_seconds": 39.43,
+      "speaker": "Hablante",
+      "text": "I'm freaked out."
+    },
+    {
+      "start": "00:00:39",
+      "end": "00:00:42",
+      "start_seconds": 39.45,
+      "end_seconds": 42.45,
+      "speaker": "Hablante",
+      "text": "I'm having nightmares that I'm being chased by these giant robotic claws."
+    },
+    {
+      "start": "00:00:42",
+      "end": "00:00:43",
+      "start_seconds": 42.47,
+      "end_seconds": 43.41,
+      "speaker": "Hablante",
+      "text": "Whatever, Tom."
+    },
+    {
+      "start": "00:00:44",
+      "end": "00:00:45",
+      "start_seconds": 44.31,
+      "end_seconds": 44.97,
+      "speaker": "Hablante",
+      "text": "We're done."
+    },
+    {
+      "start": "00:00:50",
+      "end": "00:00:53",
+      "start_seconds": 50.12,
+      "end_seconds": 52.58,
+      "speaker": "Hablante",
+      "text": "Robot's memory synced and..."
+    },
+    {
+      "start": "00:00:53",
+      "end": "00:00:56",
+      "start_seconds": 53.28,
+      "end_seconds": 55.62,
+      "speaker": "Hablante",
+      "text": "This is pretty funny."
+    },
+    {
+      "start": "00:01:58",
+      "end": "00:01:59",
+      "start_seconds": 117.72,
+      "end_seconds": 118.54,
+      "speaker": "Hablante",
+      "text": "Shouldn't you be down there?"
+    },
+    {
+      "start": "00:02:11",
+      "end": "00:02:13",
+      "start_seconds": 131.36,
+      "end_seconds": 132.8,
+      "speaker": "Hablante",
+      "text": "I heard you guys talking last night."
+    },
+    {
+      "start": "00:02:16",
+      "end": "00:02:17",
+      "start_seconds": 136.46,
+      "end_seconds": 137.28,
+      "speaker": "Hablante",
+      "text": "It's not my fault."
+    },
+    {
+      "start": "00:03:11",
+      "end": "00:03:12",
+      "start_seconds": 191.43,
+      "end_seconds": 191.97,
+      "speaker": "Hablante",
+      "text": "Are you ready?"
+    },
+    {
+      "start": "00:03:12",
+      "end": "00:03:13",
+      "start_seconds": 191.99,
+      "end_seconds": 193.47,
+      "speaker": "Hablante",
+      "text": "Of course you're ready."
+    },
+    {
+      "start": "00:03:14",
+      "end": "00:03:15",
+      "start_seconds": 193.57,
+      "end_seconds": 194.59,
+      "speaker": "Hablante",
+      "text": "You're a rock star."
+    },
+    {
+      "start": "00:03:17",
+      "end": "00:03:18",
+      "start_seconds": 197.17,
+      "end_seconds": 198.15,
+      "speaker": "Hablante",
+      "text": "How's it looking, Barley?"
+    },
+    {
+      "start": "00:03:19",
+      "end": "00:03:20",
+      "start_seconds": 198.85,
+      "end_seconds": 200.37,
+      "speaker": "Hablante",
+      "text": "We should have about ten minutes."
+    },
+    {
+      "start": "00:03:22",
+      "end": "00:03:23",
+      "start_seconds": 201.77,
+      "end_seconds": 202.73,
+      "speaker": "Hablante",
+      "text": "Well, that's perfect."
+    },
+    {
+      "start": "00:03:24",
+      "end": "00:03:24",
+      "start_seconds": 203.59,
+      "end_seconds": 204.49,
+      "speaker": "Hablante",
+      "text": "We're only one."
+    },
+    {
+      "start": "00:03:25",
+      "end": "00:03:26",
+      "start_seconds": 205.31,
+      "end_seconds": 206.49,
+      "speaker": "Hablante",
+      "text": "All systems go!"
+    },
+    {
+      "start": "00:03:27",
+      "end": "00:03:28",
+      "start_seconds": 206.57,
+      "end_seconds": 207.56,
+      "speaker": "Hablante",
+      "text": "Yeah, you, go!"
+    },
+    {
+      "start": "00:03:28",
+      "end": "00:03:29",
+      "start_seconds": 208.0,
+      "end_seconds": 208.56,
+      "speaker": "Hablante",
+      "text": "Go!"
+    },
+    {
+      "start": "00:03:30",
+      "end": "00:03:31",
+      "start_seconds": 209.92,
+      "end_seconds": 210.8,
+      "speaker": "Hablante",
+      "text": "Move your asses!"
+    },
+    {
+      "start": "00:03:31",
+      "end": "00:03:32",
+      "start_seconds": 210.84,
+      "end_seconds": 211.68,
+      "speaker": "Hablante",
+      "text": "Go, go, go!"
+    },
+    {
+      "start": "00:03:32",
+      "end": "00:03:33",
+      "start_seconds": 211.7,
+      "end_seconds": 213.4,
+      "speaker": "Hablante",
+      "text": "I love it!"
+    },
+    {
+      "start": "00:03:34",
+      "end": "00:03:34",
+      "start_seconds": 213.54,
+      "end_seconds": 213.96,
+      "speaker": "Hablante",
+      "text": "Come on!"
+    },
+    {
+      "start": "00:03:35",
+      "end": "00:03:36",
+      "start_seconds": 215.44,
+      "end_seconds": 216.4,
+      "speaker": "Hablante",
+      "text": "Goal!"
+    },
+    {
+      "start": "00:03:43",
+      "end": "00:03:44",
+      "start_seconds": 222.9,
+      "end_seconds": 223.75,
+      "speaker": "Hablante",
+      "text": "That's nice."
+    },
+    {
+      "start": "00:03:45",
+      "end": "00:03:46",
+      "start_seconds": 224.69,
+      "end_seconds": 225.58,
+      "speaker": "Hablante",
+      "text": "Nothing to worry about."
+    },
+    {
+      "start": "00:03:46",
+      "end": "00:03:46",
+      "start_seconds": 225.62,
+      "end_seconds": 225.94,
+      "speaker": "Hablante",
+      "text": "Tom!"
+    },
+    {
+      "start": "00:03:51",
+      "end": "00:03:53",
+      "start_seconds": 230.72,
+      "end_seconds": 232.82,
+      "speaker": "Hablante",
+      "text": "Tom, there she is."
+    },
+    {
+      "start": "00:03:54",
+      "end": "00:03:56",
+      "start_seconds": 233.68,
+      "end_seconds": 236.18,
+      "speaker": "Hablante",
+      "text": "Now, you'll love her."
+    },
+    {
+      "start": "00:03:57",
+      "end": "00:03:59",
+      "start_seconds": 237.5,
+      "end_seconds": 239.24,
+      "speaker": "Hablante",
+      "text": "She's your passion."
+    },
+    {
+      "start": "00:04:00",
+      "end": "00:04:00",
+      "start_seconds": 239.74,
+      "end_seconds": 240.5,
+      "speaker": "Hablante",
+      "text": "Be tender to her."
+    },
+    {
+      "start": "00:04:02",
+      "end": "00:04:02",
+      "start_seconds": 241.52,
+      "end_seconds": 242.04,
+      "speaker": "Hablante",
+      "text": "Be honest."
+    },
+    {
+      "start": "00:04:04",
+      "end": "00:04:04",
+      "start_seconds": 243.7,
+      "end_seconds": 244.2,
+      "speaker": "Hablante",
+      "text": "Be tender."
+    },
+    {
+      "start": "00:04:06",
+      "end": "00:04:08",
+      "start_seconds": 245.58,
+      "end_seconds": 247.84,
+      "speaker": "Hablante",
+      "text": "Remind her what love is."
+    },
+    {
+      "start": "00:04:45",
+      "end": "00:04:55",
+      "start_seconds": 285.19,
+      "end_seconds": 294.95,
+      "speaker": "Hablante",
+      "text": "And... Action!"
+    },
+    {
+      "start": "00:04:57",
+      "end": "00:04:58",
+      "start_seconds": 296.73,
+      "end_seconds": 298.33,
+      "speaker": "Hablante",
+      "text": "Memory override in progress!"
+    },
+    {
+      "start": "00:04:59",
+      "end": "00:05:01",
+      "start_seconds": 299.25,
+      "end_seconds": 300.51,
+      "speaker": "Hablante",
+      "text": "You're a jerk, Tom!"
+    },
+    {
+      "start": "00:05:02",
+      "end": "00:05:03",
+      "start_seconds": 302.32,
+      "end_seconds": 303.0,
+      "speaker": "Hablante",
+      "text": "Oh, I'm sorry!"
+    },
+    {
+      "start": "00:05:04",
+      "end": "00:05:04",
+      "start_seconds": 303.78,
+      "end_seconds": 304.12,
+      "speaker": "Hablante",
+      "text": "Sorry."
+    },
+    {
+      "start": "00:05:05",
+      "end": "00:05:05",
+      "start_seconds": 305.1,
+      "end_seconds": 305.38,
+      "speaker": "Hablante",
+      "text": "Sorry."
+    },
+    {
+      "start": "00:05:16",
+      "end": "00:05:20",
+      "start_seconds": 316.01,
+      "end_seconds": 320.09,
+      "speaker": "Hablante",
+      "text": "Look, Celia, we have to follow our passions."
+    },
+    {
+      "start": "00:05:21",
+      "end": "00:05:23",
+      "start_seconds": 321.39,
+      "end_seconds": 322.55,
+      "speaker": "Hablante",
+      "text": "You have your robotics."
+    },
+    {
+      "start": "00:05:25",
+      "end": "00:05:28",
+      "start_seconds": 325.15,
+      "end_seconds": 327.61,
+      "speaker": "Hablante",
+      "text": "And I just want to be awesome in space."
+    },
+    {
+      "start": "00:05:39",
+      "end": "00:05:40",
+      "start_seconds": 339.18,
+      "end_seconds": 339.76,
+      "speaker": "Hablante",
+      "text": "Get her coming."
+    },
+    {
+      "start": "00:05:40",
+      "end": "00:05:41",
+      "start_seconds": 340.34,
+      "end_seconds": 341.04,
+      "speaker": "Hablante",
+      "text": "Two minutes left."
+    },
+    {
+      "start": "00:05:41",
+      "end": "00:05:42",
+      "start_seconds": 341.06,
+      "end_seconds": 342.0,
+      "speaker": "Hablante",
+      "text": "Two minutes."
+    },
+    {
+      "start": "00:05:47",
+      "end": "00:05:50",
+      "start_seconds": 347.04,
+      "end_seconds": 349.88,
+      "speaker": "Hablante",
+      "text": "Why don't you just admit that you're freaked out by my robot hand?"
+    },
+    {
+      "start": "00:05:57",
+      "end": "00:05:58",
+      "start_seconds": 356.88,
+      "end_seconds": 357.56,
+      "speaker": "Hablante",
+      "text": "Listen, Celia."
+    },
+    {
+      "start": "00:05:58",
+      "end": "00:05:59",
+      "start_seconds": 358.18,
+      "end_seconds": 358.88,
+      "speaker": "Hablante",
+      "text": "I was young."
+    },
+    {
+      "start": "00:06:00",
+      "end": "00:06:01",
+      "start_seconds": 360.02,
+      "end_seconds": 360.6,
+      "speaker": "Hablante",
+      "text": "And a dick."
+    },
+    {
+      "start": "00:06:01",
+      "end": "00:06:03",
+      "start_seconds": 361.2,
+      "end_seconds": 362.9,
+      "speaker": "Hablante",
+      "text": "But there's no reason to destroy the world."
+    },
+    {
+      "start": "00:06:05",
+      "end": "00:06:06",
+      "start_seconds": 365.06,
+      "end_seconds": 365.76,
+      "speaker": "Hablante",
+      "text": "Why does he do this?"
+    },
+    {
+      "start": "00:06:07",
+      "end": "00:06:08",
+      "start_seconds": 367.1,
+      "end_seconds": 368.42,
+      "speaker": "Hablante",
+      "text": "We already tried that one."
+    },
+    {
+      "start": "00:06:19",
+      "end": "00:06:20",
+      "start_seconds": 379.21,
+      "end_seconds": 379.75,
+      "speaker": "Hablante",
+      "text": "No!"
+    },
+    {
+      "start": "00:06:20",
+      "end": "00:06:23",
+      "start_seconds": 380.45,
+      "end_seconds": 382.7,
+      "speaker": "Hablante",
+      "text": "No!"
+    },
+    {
+      "start": "00:06:24",
+      "end": "00:06:25",
+      "start_seconds": 383.56,
+      "end_seconds": 384.86,
+      "speaker": "Hablante",
+      "text": "You broke my heart."
+    },
+    {
+      "start": "00:06:25",
+      "end": "00:06:27",
+      "start_seconds": 385.32,
+      "end_seconds": 386.62,
+      "speaker": "Hablante",
+      "text": "I know."
+    },
+    {
+      "start": "00:06:27",
+      "end": "00:06:29",
+      "start_seconds": 387.16,
+      "end_seconds": 388.58,
+      "speaker": "Hablante",
+      "text": "You forgot me on Earth."
+    },
+    {
+      "start": "00:06:29",
+      "end": "00:06:30",
+      "start_seconds": 389.42,
+      "end_seconds": 390.24,
+      "speaker": "Hablante",
+      "text": "I know."
+    },
+    {
+      "start": "00:06:31",
+      "end": "00:06:32",
+      "start_seconds": 390.58,
+      "end_seconds": 392.1,
+      "speaker": "Hablante",
+      "text": "I should just crush you."
+    },
+    {
+      "start": "00:06:32",
+      "end": "00:06:45",
+      "start_seconds": 392.14,
+      "end_seconds": 404.88,
+      "speaker": "Hablante",
+      "text": "I'm..."
+    },
+    {
+      "start": "00:06:46",
+      "end": "00:06:48",
+      "start_seconds": 405.82,
+      "end_seconds": 408.16,
+      "speaker": "Hablante",
+      "text": "I'm sorry."
+    },
+    {
+      "start": "00:06:50",
+      "end": "00:06:51",
+      "start_seconds": 410.36,
+      "end_seconds": 411.0,
+      "speaker": "Hablante",
+      "text": "Who's that, Lip?"
+    },
+    {
+      "start": "00:06:59",
+      "end": "00:07:00",
+      "start_seconds": 419.32,
+      "end_seconds": 419.98,
+      "speaker": "Hablante",
+      "text": "Not my fault!"
+    },
+    {
+      "start": "00:07:02",
+      "end": "00:07:06",
+      "start_seconds": 422.34,
+      "end_seconds": 425.96,
+      "speaker": "Hablante",
+      "text": "There's time."
+    },
+    {
+      "start": "00:07:06",
+      "end": "00:07:08",
+      "start_seconds": 426.08,
+      "end_seconds": 427.96,
+      "speaker": "Hablante",
+      "text": "Quiet on set."
+    },
+    {
+      "start": "00:07:09",
+      "end": "00:07:11",
+      "start_seconds": 428.56,
+      "end_seconds": 431.44,
+      "speaker": "Hablante",
+      "text": "We're out of time, we're out of time!"
+    },
+    {
+      "start": "00:07:12",
+      "end": "00:07:15",
+      "start_seconds": 431.5,
+      "end_seconds": 435.02,
+      "speaker": "Hablante",
+      "text": "Come on!"
+    },
+    {
+      "start": "00:07:28",
+      "end": "00:07:28",
+      "start_seconds": 448.03,
+      "end_seconds": 448.31,
+      "speaker": "Hablante",
+      "text": "Thank you."
+    },
+    {
+      "start": "00:08:25",
+      "end": "00:08:28",
+      "start_seconds": 505.21,
+      "end_seconds": 507.65,
+      "speaker": "Hablante",
+      "text": "Captain, we have to abort!"
+    },
+    {
+      "start": "00:08:28",
+      "end": "00:08:29",
+      "start_seconds": 507.67,
+      "end_seconds": 508.87,
+      "speaker": "Hablante",
+      "text": "The world's changed, Celia."
+    },
+    {
+      "start": "00:08:58",
+      "end": "00:08:59",
+      "start_seconds": 538.31,
+      "end_seconds": 539.35,
+      "speaker": "Hablante",
+      "text": "Memory override complete!"
+    },
+    {
+      "start": "00:09:06",
+      "end": "00:09:22",
+      "start_seconds": 545.8,
+      "end_seconds": 561.93,
+      "speaker": "Hablante",
+      "text": "You know..."
+    },
+    {
+      "start": "00:09:22",
+      "end": "00:09:23",
+      "start_seconds": 561.97,
+      "end_seconds": 563.49,
+      "speaker": "Hablante",
+      "text": "There's a lesson to be learned from this."
+    },
+    {
+      "start": "00:09:24",
+      "end": "00:09:27",
+      "start_seconds": 563.73,
+      "end_seconds": 566.75,
+      "speaker": "Hablante",
+      "text": "Could've gone worse."
+    },
+    {
+      "start": "00:09:51",
+      "end": "00:09:52",
+      "start_seconds": 591.43,
+      "end_seconds": 592.3,
+      "speaker": "Hablante",
+      "text": "Thank you."
+    }
+  ],
+  "id": "TV14",
+  "source": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV14.mp4",
+  "video_file": "/Users/mariosanjuan/Desktop/Wachity/Actual/experiments_watchity/data/test-vectors/videos/TV14.mp4",
+  "request_metadata": {
+    "source": {
+      "algorithm": "sha256",
+      "sha256": "63bcd4ec1de2f17e3b1ab6e99654cf231ce1d70c6a721ef3daec2c9793411df3",
+      "size": 581008370
+    },
+    "language": "en",
+    "diarization": false
+  },
+  "cache_hit": false,
+  "cache_validation": "fingerprint",
+  "indexed_in_search": true,
+  "video_file_size_mb": 554.09,
+  "title": "TV14 - TV14"
+}

@@ -14,7 +14,7 @@ Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP
 ## Preparar la locución
 
 - Usa `text` cuando el contenido que debe locutarse ya esté definido.
-- Usa `video_id` solo cuando el usuario quiera que Media Core resuma ese vídeo y locute el resumen. Ajusta el estilo del resumen a la petición.
+- Para resumir y locutar, lee media_read_transcript, redacta tú en el idioma solicitado y pasa text. Usar solo video_id activa un resumen remoto adicional.
 - El idioma de salida debe corresponder al texto que se va a pronunciar y a una opción admitida por el proveedor. La síntesis no implica traducción: traduce o redacta antes únicamente si el usuario lo ha pedido.
 - Selecciona proveedor, voz, velocidad, estilo, descripción de voz, audio de referencia y formato a partir de la petición y de las capacidades del proveedor. Omite campos incompatibles en lugar de simular que se aplicaron.
 - No presupongas un único idioma, voz, acento, género, proveedor o formato como adecuado para todas las solicitudes.
@@ -24,7 +24,7 @@ Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP
 1. Llama a `media_tts` con texto no vacío o con un vídeo válido para el flujo resumen-a-voz cuando necesites un archivo final único.
 2. Comprueba `status`, proveedor efectivo, idioma, ruta del archivo, formato y duración antes de comunicar el resultado.
 3. Devuelve la ruta exacta proporcionada por la herramienta. No reconstruyas ni inventes nombres de archivo.
-4. Para generación progresiva, llama a `media_speak` con `text` o `video_id`, conserva el `job_id` y consulta `media_job_status` al intervalo sugerido.
+4. Para generación progresiva, llama a `media_speak` con `text` redactado por Hermes (no solo video_id, que dispara otro resumen remoto), conserva el `job_id` y consulta `media_job_status` al intervalo sugerido.
 5. Ordena los fragmentos por `chunk_index`, conserva sus tiempos y considera terminado el trabajo solo al alcanzar un estado final. Que exista un primer evento `audio_ready` no significa que la locución completa haya terminado.
 
 ## Límites y fallos

@@ -13,6 +13,8 @@ from media_core.config import (
     TEMPORAL_CACHE_DIR, TRANSCRIPTS_DIR, VISUAL_CACHE_DIR, VISUAL_SWEEPS_DIR,
 )
 from media_core.services.visual_embeddings import VISUAL_COLLECTION_NAME
+from media_core.services.multimodal import COLLECTION as MULTIMODAL_COLLECTION
+from media_core.config import MULTIMODAL_CACHE_DIR
 
 
 def media_forget_video(video_id: str, source_stem: str = '') -> dict:
@@ -31,10 +33,10 @@ def media_forget_video(video_id: str, source_stem: str = '') -> dict:
         settings=Settings(anonymized_telemetry=False),
     )
     removed_vectors = 0
-    for collection_name in (CHROMA_COLLECTION, VISUAL_COLLECTION_NAME, 'media_temporal_events_v1'):
+    for collection_name in (CHROMA_COLLECTION, VISUAL_COLLECTION_NAME, 'media_temporal_events_v1', MULTIMODAL_COLLECTION):
         try:
             collection = client.get_collection(collection_name)
-        except NotFoundError:
+        except (NotFoundError, KeyError):
             continue
         ids = collection.get(where={'video_id': clean_id})['ids']
         if ids:
@@ -49,6 +51,7 @@ def media_forget_video(video_id: str, source_stem: str = '') -> dict:
         OCR_CACHE_DIR / f'{clean_id}_ocr.json',
         IDENTITIES_CACHE_DIR / f'{clean_id}_identities.json',
         TEMPORAL_CACHE_DIR / f'{clean_id}.json',
+        MULTIMODAL_CACHE_DIR / f'{clean_id}.json',
         BASE_DIR / 'experiments' / 'test_vectors' / f'{clean_id}.json',
         BASE_DIR / 'cache' / 'transcriptions' / f'{clean_id}_whisperx.json',
         BASE_DIR / 'cache' / 'transcriptions' / f'{clean_id}.json',

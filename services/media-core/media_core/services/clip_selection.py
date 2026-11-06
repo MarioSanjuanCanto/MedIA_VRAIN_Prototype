@@ -181,7 +181,7 @@ def select_window(query, segments):
         best['turns_found'] = len(turns)
         best['all_turns'] = turns
         if len(turns) > 1:
-            best['match_warning'] = (best['match_warning'] + f' Se han localizado {len(turns)} intervenciones. Se ha seleccionado la de mayor duración por defecto.').strip()
+            best['match_warning'] = (best['match_warning'] + f' Se han localizado {len(turns)} intervenciones. Se ha seleccionado la intervención más larga por defecto.').strip()
         return best, True
     if person_intent:
         return None, True

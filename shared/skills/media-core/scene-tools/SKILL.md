@@ -3,15 +3,20 @@ name: media-core-scene-tools
 description: Describe escenas concretas, recorta sujetos e investiga identidades visibles con Media Core. Úsala para inspeccionar o entregar un fotograma de un instante conocido; no para recorrer exhaustivamente todo un vídeo.
 ---
 
+Para visión, si aparece `vision_image_path`, inspecciónalo UNA VEZ con `vision_analyze`: reúne todos los evidence_frames en orden con sus segundos rotulados. No repitas el análisis de cada fotograma salvo que necesites ampliar un detalle. Si no hay lámina, inspecciona cada evidence_frame.
+
+
 # Inspeccionar escenas y sujetos con Media Core
 
-Usa `media_describe_scene` para interpretar un momento, `media_crop_subject` para aislar una persona u objeto y `media_identify_person_web` cuando el usuario solicite investigar la identidad de una persona desconocida.
+Usa `media_scene_context` para interpretar un momento, `media_crop_subject` para aislar una persona u objeto y `media_identify_person_web` cuando el usuario solicite investigar la identidad de una persona desconocida.
 
 ## Uso obligatorio de Media Core
 
-Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP de Media Core y sus herramientas de escena. No sustituyas la descripción, localización o recorte por scripts locales, comandos de shell, otros MCP o servicios externos. Para identificar a una persona, usa la herramienta específica y conserva sus límites de confianza.
+Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP de Media Core y sus herramientas de escena. Prepara las evidencias con Media Core y descríbelas tú mediante vision_analyze. No sustituyas la extracción o recorte por scripts locales, comandos de shell u otros MCP. Para identificar a una persona, usa la herramienta específica y conserva sus límites de confianza.
 
 ## Describir una escena
+
+Llama a media_scene_context, después inspecciona cada evidence_frame con vision_analyze antes de describirlo. El resultado del contexto no es una descripción visual. No llames a la ruta heredada media_describe_scene ni a media_describe_segment para duplicar el análisis puntual. Si falla la visión, informa del error; no deduzcas la escena a partir de OCR o texto solamente.
 
 - Indica el `video_id` y el `timestamp` exactos. Usa `scene_id` solo cuando el usuario o un resultado previo hayan identificado esa escena; si se aporta, tiene prioridad sobre el timestamp.
 - Formula `prompt`, `person` y `action_query` de manera concreta. No introduzcas como premisa una identidad o acción que todavía no esté demostrada.

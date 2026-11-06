@@ -1,6 +1,9 @@
 """MCP tool for targeted scene understanding and visual interpretation with VLM."""
 
 import json
+import math
+import hashlib
+import uuid
 import re
 from pathlib import Path
 from typing import Any
@@ -22,6 +25,7 @@ def media_describe_scene(
     action_query: str = "",
     multi_frame: bool = True,
     model: str | None = None,
+    analyze: bool = True,
 ) -> dict:
     """Interpreta visualmente una escena o fotograma de vídeo utilizando un Vision-Language Model (VLM).
 
@@ -37,12 +41,15 @@ def media_describe_scene(
         action_query: Pregunta concreta sobre la acción o suceso (ej. '¿qué está haciendo?', '¿cómo reacciona?').
         multi_frame: Si es True, analiza una ráfaga temporal de fotogramas contiguos para comprender movimiento y acción continua.
         model: Modelo de visión opcional (por defecto 'google/gemma-4-31b-it').
+        analyze: False prepara evidencia sin llamar al VLM. Hermes debe usar media_scene_context.
 
     Entrega de fotograma:
         El resultado ya incluye 'markdown_image' (ej: '![Fotograma](/api/keyframes/...)'), 'keyframe_url',
         'media_line' (ej: 'MEDIA:<ruta_absoluta>') y 'absolute_keyframe_path'. Puedes usarlos directamente en tu
         respuesta sin buscar archivos locales ni usar search_files.
     """
+    if not math.isfinite(timestamp) or timestamp < 0:
+        return {"status": "error", "message": "timestamp debe ser finito y no negativo."}
     video_file = resolve_video_file(video_id)
     if not video_file or not video_file.is_file():
         return {
@@ -113,6 +120,8 @@ def media_describe_scene(
 
     if not target_paths:
         target_paths = [keyframes_dir / target_keyframe_filename]
+    if any(not p.is_file() for p in target_paths):
+        return {"status": "error", "message": "Faltan fotogramas del instante solicitado; vuelve a preparar el análisis visual."}
 
     # Multimodal context fusion (OCR + Transcript around timestamp)
     context_metadata: dict[str, Any] = {}
@@ -162,7 +171,16 @@ def media_describe_scene(
         action_query=action_query,
         context_metadata=context_metadata if context_metadata else None,
         model=model,
-    )
+    ) if analyze else {
+        "status": "success", "video_id": clean_id, "timestamp": target_timestamp,
+        "requested_timestamp": timestamp, "generation_backend": "agent", "llm_calls": 0,
+        "question": prompt, "target_person": query_person, "action_query": action_query,
+        "evidence_frames": [
+            {"timestamp": next((f.get("timestamp") for f in frames if f.get("filename") == p.name), target_timestamp),
+             "path": str(p.resolve())} for p in target_paths
+        ],
+        "next_step": "Inspect every evidence frame with vision_analyze before describing the scene. OCR and speaker metadata are context, not proof of visible identity. Report timestamp differences.",
+    }
     target_abs = str((keyframes_dir / target_keyframe_filename).resolve())
     target_url = f"/api/keyframes/{clean_id}/{target_keyframe_filename}"
     res["scene_id"] = matched_scene_id
@@ -175,8 +193,61 @@ def media_describe_scene(
     res["markdown_image"] = f"![Fotograma {clean_id} {target_timestamp:.1f}s]({target_url})"
     if active_speaker_info and active_speaker_info.get("status") == "success":
         res["active_speaker"] = active_speaker_info
-        if not res.get("person_role_identified"):
+        if analyze and not res.get("person_role_identified"):
             res["person_role_identified"] = active_speaker_info.get("display_name")
     if context_metadata:
         res["multimodal_context"] = context_metadata
     return res
+
+
+@measured
+def media_scene_context(video_id: str, timestamp: float = 0.0,
+                        scene_id: int | None = None, prompt: str = "",
+                        person: str = "", action_query: str = "",
+                        multi_frame: bool = True) -> dict:
+    """Prepare nearby frames, timestamps, OCR and speech without calling a vision model.
+
+    Inspect vision_image_path ONCE with vision_analyze: it contains every frame
+    in chronological order with timestamps. This result is evidence,
+    not an image description. Native/auxiliary vision routing belongs to Hermes.
+    """
+    result = media_describe_scene(video_id=video_id, timestamp=timestamp, scene_id=scene_id,
+                                   prompt=prompt, person=person, action_query=action_query,
+                                   multi_frame=multi_frame, analyze=False)
+    if result.get("status") != "success":
+        return result
+    frames = result["evidence_frames"]
+    # One labelled image preserves temporal context without one auxiliary VLM
+    # call per frame. Bound dimensions to Hermes's normal native-image budget.
+    if len(frames) == 1:
+        result["vision_image_path"] = frames[0]["path"]
+        return result
+    from PIL import Image, ImageDraw, ImageOps
+    paths = [Path(frame["path"]) for frame in frames]
+    signature = [(str(p), p.stat().st_size, p.stat().st_mtime_ns, frame["timestamp"])
+                 for p, frame in zip(paths, frames)]
+    digest = hashlib.sha256(repr(signature).encode()).hexdigest()[:20]
+    sheet = paths[0].parent / f"scene_context_{digest}.jpg"
+    if not sheet.is_file():
+        tiles = []
+        for path, frame in zip(paths, frames):
+            with Image.open(path) as original:
+                tile = ImageOps.exif_transpose(original).convert("RGB")
+                tile.thumbnail((768, 416))
+                tiles.append((tile, frame["timestamp"]))
+        width = max(tile.width for tile, _ in tiles)
+        canvas = Image.new("RGB", (width, sum(tile.height + 24 for tile, _ in tiles)), "black")
+        draw, y = ImageDraw.Draw(canvas), 0
+        for tile, stamp in tiles:
+            draw.text((8, y + 5), f"{result['video_id']} | {stamp:g} s", fill="white")
+            canvas.paste(tile, (0, y + 24))
+            y += tile.height + 24
+        temporary = sheet.with_name(f".{sheet.stem}_{uuid.uuid4().hex}.jpg")
+        try:
+            canvas.save(temporary, quality=88)
+            temporary.replace(sheet)
+        finally:
+            temporary.unlink(missing_ok=True)
+    result["vision_image_path"] = str(sheet.resolve())
+    result["next_step"] = "Inspect vision_image_path once with vision_analyze: it contains ALL evidence_frames in chronological order, labelled with seconds. Describe observed pixels, not OCR or speaker assumptions."
+    return result

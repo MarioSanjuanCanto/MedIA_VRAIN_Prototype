@@ -37,7 +37,7 @@ def test_forget_video_removes_only_selected_video_data(tmp_path, monkeypatch):
     monkeypatch.setattr(forget_video, 'BASE_DIR', tmp_path)
     for name in (
         'CACHE_DIR', 'TRANSCRIPTS_DIR', 'VISUAL_CACHE_DIR', 'OCR_CACHE_DIR',
-        'IDENTITIES_CACHE_DIR', 'TEMPORAL_CACHE_DIR', 'KEYFRAMES_DIR',
+        'IDENTITIES_CACHE_DIR', 'TEMPORAL_CACHE_DIR', 'MULTIMODAL_CACHE_DIR', 'KEYFRAMES_DIR',
         'VISUAL_SWEEPS_DIR', 'FACES_CACHE_DIR', 'CROPS_CACHE_DIR',
     ):
         directory = tmp_path / name

@@ -1,6 +1,6 @@
 ---
 name: media-core-clips
-description: Selecciona y, cuando sea posible, extrae clips de un vídeo con Media Core, priorizando la selección editorial salvo indicación contraria. Úsala sobre contenido ya transcrito; para un archivo nuevo que también deba transcribirse, usa el flujo completo de procesamiento.
+description: Selecciona clips con Hermes desde evidencia de Media Core y valida y corta los MP4 con media_clips, evitando un segundo selector generativo.
 ---
 
 # Seleccionar y extraer clips con Media Core
@@ -9,7 +9,7 @@ Usa `media_clips` conforme al esquema expuesto por el servidor conectado. La sel
 
 ## Uso obligatorio de Media Core
 
-Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP de Media Core y su herramienta `media_clips`. No sustituyas la selección o el corte por scripts locales, FFmpeg directo, otros MCP ni servicios externos. Si el MCP o la herramienta no están disponibles, informa de ello y solicita que se conecte Media Core; no ejecutes la tarea mediante una alternativa.
+Usa Media Core para obtener evidencia, validar intervalos y cortar los archivos. Hermes realiza la decisión editorial; no uses scripts locales ni FFmpeg directo para sustituir el corte.
 
 ## Configurar la selección
 
@@ -19,10 +19,9 @@ Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP
 - Si el usuario pide más de 10 intervenciones, llama a `media_clips` en lotes consecutivos de hasta 10 y entrega todas las rutas finales en orden.
 - Si el usuario proporciona tiempos exactos, usa `media_clips(video_id=..., start_seconds=..., end_seconds=..., cut_video_files=True)`. Conserva los decimales de la fuente; no vuelvas a buscar el intervalo por nombre o frase.
 - Si el usuario busca un asunto concreto, convierte su petición en un tema breve antes de llamar a la herramienta: usa entre 2 y 8 palabras significativas y elimina instrucciones como "hazme un clip", el identificador del vídeo y fórmulas de cortesía. Ejemplo: "hazme un clip de TV05 sobre el accidente de un motorista en Cabranes" → `query="accidente motorista Cabranes"`.
-- Si solicita momentos destacados sin tema, usa una selección general compatible con la herramienta.
-- Si el usuario no indica un modo de selección, usa `selection_mode="auto"`: intenta primero una coincidencia textual rápida y recurre automáticamente al selector editorial solo si no encuentra evidencia.
-- Usa `selection_mode="editorial"` directamente para criterios subjetivos sin términos verificables, como "el momento más gracioso" o "el mejor momento".
-- Usa `selection_mode="fast"` únicamente cuando el usuario lo solicite o priorice explícitamente rapidez o menor coste frente a la precisión editorial. No cambies automáticamente a `fast` solo porque la consulta contenga términos concretos.
+- Para un tema, busca candidatos con los índices y lee la transcripción para comprobarlos. Para destacados o criterios subjetivos, lee `media_read_transcript` siguiendo next_offset; decide tú desde la fuente.
+- Envía la selección a `media_clips(video_id=..., candidates=[{"start_seconds":10,"end_seconds":40,"title":"Título","match_evidence":"cita literal del intervalo"}], max_clips=1, cut_video_files=True)`. Cada cita debe tener al menos 12 caracteres y aparecer literalmente dentro del intervalo. Todos los candidatos se validan antes de cortar.
+- No uses auto ni editorial sin candidates: esas rutas heredadas llaman a un segundo modelo. fast permite coincidencia textual sin LLM, pero no sirve para elegir el mejor momento subjetivo.
 - Ajusta el número máximo de clips y la creación de archivos a la petición. No impongas una plataforma, audiencia, duración, idioma ni criterio editorial adicional que el usuario no haya indicado.
 - Usa `transcript_text` solo cuando corresponda a la fuente solicitada y no haya una transcripción asociada disponible.
 

@@ -1,56 +1,116 @@
 {
-  "/clips-todos": {
-    "description": "Busca visualmente todas las apariciones y extrae sus clips",
-    "usage": "/clips-todos <vídeo> <qué buscar>",
-    "emptyInput": "TV05 personas mayores",
-    "prompt": "{{input}}"
-  },
   "/resumir": {
-    "description": "Resume un vídeo con Media Core.",
-    "usage": "/resumir <vídeo pedido por el usuario>",
-    "prompt": "Usa exclusivamente media-core y media_summarize para resumir el vídeo indicado. Petición del usuario: {{input}}",
-    "emptyInput": "No se ha indicado el vídeo; pide únicamente su identificador."
+    "description": "Resume un vídeo con el idioma, enfoque y extensión que indiques.",
+    "usage": "/resumir <vídeo> [idioma o enfoque]",
+    "prompt": "Resume el vídeo indicado desde su transcripción verificada en Media Core. Respeta el idioma, enfoque y extensión pedidos; no mezcles otros vídeos. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo; usa el del contexto si está claro o pide su identificador."
   },
   "/transcribir": {
-    "description": "Transcribe e indexa un vídeo.",
-    "usage": "/transcribir <vídeo pedido por el usuario>",
-    "prompt": "Usa exclusivamente media-core y media_transcribe para transcribir e indexar el vídeo indicado. Petición del usuario: {{input}}",
-    "emptyInput": "No se ha indicado el vídeo; pide únicamente su identificador."
+    "description": "Transcribe el audio de un vídeo y permite buscar en él.",
+    "usage": "/transcribir <vídeo> [idioma]",
+    "prompt": "Transcribe e indexa la fuente indicada con media_transcribe. Reutiliza una transcripción válida; no fuerces reprocesado. Espera media_job_status si devuelve un trabajo. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo o archivo que se debe transcribir."
+  },
+  "/procesar": {
+    "description": "Prepara un vídeo nuevo y extrae los clips que pidas.",
+    "usage": "/procesar <vídeo o archivo> <qué clips necesitas>",
+    "prompt": "Prepara la fuente y genera los clips solicitados con las herramientas conectadas de Media Core. Reutiliza el trabajo existente, espera los trabajos pendientes y confirma los archivos antes de entregarlos. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan la fuente y los clips deseados; pide solo el dato que no esté en el contexto."
   },
   "/buscar": {
-    "description": "Busca un tema en las transcripciones.",
-    "usage": "/buscar <vídeo pedido por el usuario> <tema>",
-    "prompt": "Usa exclusivamente media-core y media_search para buscar el tema indicado en las transcripciones. Petición del usuario: {{input}}",
-    "emptyInput": "No se han indicado el vídeo o el tema; pide únicamente los datos imprescindibles."
+    "description": "Localiza momentos por lo que se dice, se ve o se escucha.",
+    "usage": "/buscar <vídeo> <qué buscar>",
+    "prompt": "Busca en el vídeo indicado con Media Core. Usa el índice multimodal cuando esté disponible y amplía con búsqueda textual o visual si hace falta. Verifica los candidatos y devuelve momentos con sus tiempos; no generes clips si no se piden. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o el contenido que hay que localizar."
+  },
+  "/buscar-visual": {
+    "description": "Localiza personas, objetos, acciones o escenarios visibles.",
+    "usage": "/buscar-visual <vídeo> <qué aparece en pantalla>",
+    "prompt": "Localiza el contenido visual indicado con media_search_multimodal o media_search_visual y verifica los mejores candidatos. Devuelve tiempos y fotogramas. No concluyas ausencia porque no aparezca en la transcripción. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o la descripción visual que hay que buscar."
   },
   "/clip": {
-    "description": "Localiza y extrae un único clip.",
-    "usage": "/clip <vídeo pedido por el usuario> <tema>",
-    "prompt": "Usa exclusivamente media-core y media_clips para entregar un único clip verificable sobre el tema indicado. Petición del usuario: {{input}}",
-    "emptyInput": "No se han indicado el vídeo o el tema; pide únicamente los datos imprescindibles."
+    "description": "Extrae un clip y puede doblarlo al idioma que indiques.",
+    "usage": "/clip <vídeo> <tema, persona o intervalo> [doblado a idioma]",
+    "prompt": "Extrae un único clip con Media Core. Para tiempos conocidos usa media_clips con ese intervalo; para turnos de una persona consulta media_speakers y conserva sus índices. Para un tema, localiza y verifica primero el tramo. Si se pide traducir o doblar, llama después a media_dub_clip con source=cut_video_file, el video_id y los start_seconds/end_seconds originales, y entrega solo dubbed_video_file. No uses media_tts ni entregues un audio separado. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o el tema, persona o intervalo del clip."
   },
-  "/audio": {
-    "description": "Genera una locución con Piper.",
-    "usage": "/audio <idioma> <texto para locutar>",
-    "prompt": "Usa exclusivamente media-core y media_tts con provider=piper para generar una única locución. Petición del usuario: {{input}}",
-    "emptyInput": "No se ha indicado el texto; pide únicamente el texto que debe locutarse."
+  "/doblar": {
+    "description": "Traduce y sincroniza el audio de un vídeo o de un clip solicitado.",
+    "usage": "/doblar <vídeo o clip> <fragmento opcional> <idioma>",
+    "prompt": "Dobla el vídeo o clip solicitado con Media Core. Si el usuario describe un fragmento, localízalo y genera exactamente un MP4 con media_clips; después llama media_dub_clip con source=cut_video_file, video_id, start_seconds/end_seconds y target_language. Si proporciona directamente un clip, usa media_dub_clip sobre ese archivo. Entrega únicamente dubbed_video_file y confirma que usa sincronización temporal por segmentos. No uses media_tts ni entregues un audio suelto. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o clip y el idioma de destino; pide únicamente los datos ausentes."
+  },
+  "/subtitular": {
+    "description": "Genera un vídeo o clip con subtítulos originales o traducidos.",
+    "usage": "/subtitular <vídeo o clip> [fragmento] [idioma]",
+    "prompt": "Subtitula el vídeo o clip solicitado con Media Core. Si el usuario describe un fragmento, localízalo y genera exactamente un MP4 con media_clips; después llama media_subtitle_video con source=cut_video_file, video_id y start_seconds/end_seconds. Si no indica idioma, usa target_language=original. Si pide otro idioma, traduce los subtítulos a ese idioma. Entrega únicamente subtitled_video_file, no el clip intermedio. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo o clip que se debe subtitular; usa el contexto si es inequívoco o pide ese dato."
+  },
+  "/clips-todos": {
+    "description": "Recorre un vídeo y extrae las apariciones visuales de lo que buscas.",
+    "usage": "/clips-todos <vídeo> <qué buscar>",
+    "prompt": "Busca todas las apariciones visuales con media_find_all_visual para el vídeo y la descripción indicados. Espera media_job_status y entrega los clips confirmados. Explica la cobertura; las apariciones no equivalen a personas u objetos únicos. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o la descripción visual; pide los datos, sin ejecutar un ejemplo por defecto."
+  },
+  "/hablantes": {
+    "description": "Consulta quién habla en un momento o sus turnos numerados.",
+    "usage": "/hablantes <vídeo> [persona o momento]",
+    "prompt": "Consulta media_speakers para el vídeo indicado. Si hay un momento, conviértelo a segundos; si hay una persona, muestra sus turnos numerados. Distingue quién habla de quién aparece en pantalla y no cortes clips si no se piden. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo; pregunta su identificador si no está en el contexto."
   },
   "/describir": {
-    "description": "Describe una escena o fotograma.",
-    "usage": "/describir <vídeo pedido por el usuario> <momento>",
-    "prompt": "Usa exclusivamente media-core y media_describe_scene para describir la escena indicada. Petición del usuario: {{input}}",
-    "emptyInput": "No se han indicado el vídeo o el momento; pide únicamente los datos imprescindibles."
+    "description": "Describe qué se ve en un momento y muestra su fotograma.",
+    "usage": "/describir <vídeo> <minuto:segundo o escena>",
+    "prompt": "Describe el momento indicado con las herramientas de escena conectadas de Media Core. Convierte el tiempo a segundos y revisa directamente ese instante, sin leer la transcripción completa ni recorrer el vídeo. Distingue lo observado de lo hablado y entrega el fotograma devuelto. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo o el momento que debe describirse."
   },
-  "/estado": {
-    "description": "Comprueba Media API, Media Core y MedIA.",
-    "usage": "/estado",
-    "prompt": "Usa get_server_info de media-core y resume su estado operativo sin inventar datos.",
-    "emptyInput": ""
+  "/ocr": {
+    "description": "Lee rótulos, carteles y otros textos visibles en pantalla.",
+    "usage": "/ocr <vídeo> [minuto:segundo]",
+    "prompt": "Usa media_ocr_video con el vídeo explícito y, si se indica un momento, timestamp en segundos. Entrega el texto visible con sus tiempos, diferenciándolo de lo pronunciado; señala caracteres inciertos. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo cuyo texto en pantalla hay que leer."
+  },
+  "/recortar": {
+    "description": "Recorta una persona u objeto de un fotograma.",
+    "usage": "/recortar <vídeo> <momento> <persona u objeto>",
+    "prompt": "Usa media_crop_subject con el vídeo, timestamp en segundos y target_description del sujeto pedido. Reutiliza el fotograma del contexto cuando corresponda. Entrega la imagen recortada devuelta, sin cambiar de sujeto si no se encuentra. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo, el momento o el sujeto que se debe recortar."
+  },
+  "/identificar": {
+    "description": "Investiga quién es una persona visible y muestra las evidencias.",
+    "usage": "/identificar <vídeo> <momento> <persona visible>",
+    "prompt": "Usa media_identify_person_web para investigar a la persona indicada en el fotograma. Reutiliza el recorte existente si lo hay. Entrega fuentes y comparación cuando estén disponibles; diferencia una candidata de una identidad confirmada. Petición del usuario: {{input}}",
+    "emptyInput": "Faltan el vídeo, el momento o la descripción de la persona que se debe investigar."
+  },
+  "/audio": {
+    "description": "Locuta un texto en castellano, catalán o inglés con Piper.",
+    "usage": "/audio <es|ca|en> <texto para locutar>",
+    "prompt": "Genera una única locución con media_tts, provider=piper y el idioma pedido. Pasa el texto completo en text; Piper no traduce. Confirma el audio generado y entrega su enlace. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el texto que debe locutarse; pregunta el idioma solo si no puede deducirse."
+  },
+  "/indexar": {
+    "description": "Prepara la búsqueda de texto, imagen y sonido de un vídeo.",
+    "usage": "/indexar <vídeo>",
+    "prompt": "Prepara el índice multimodal del vídeo con media_multimodal_index_status y media_index_multimodal. Reutiliza el progreso y continúa por lotes hasta completed; no afirmes que terminó mientras siga pendiente. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo cuyo índice multimodal hay que preparar."
+  },
+  "/indexar-visual": {
+    "description": "Prepara escenas y fotogramas para las búsquedas visuales.",
+    "usage": "/indexar-visual <vídeo>",
+    "prompt": "Prepara escenas y fotogramas con media_analyze_video y el índice visual con media_index_visual para el mismo vídeo. Reutiliza cachés válidas y no fuerces reprocesado salvo petición expresa. Informa por separado del análisis y la indexación. Petición del usuario: {{input}}",
+    "emptyInput": "Falta el vídeo que se debe analizar e indexar visualmente."
   },
   "/videos": {
-    "description": "Muestra los vídeos disponibles.",
+    "description": "Lista los vídeos disponibles y su estado de preparación.",
     "usage": "/videos",
     "prompt": "Muestra los vídeos disponibles.",
+    "emptyInput": ""
+  },
+  "/estado": {
+    "description": "Comprueba la conexión de la API, Media Core y MedIA.",
+    "usage": "/estado",
+    "prompt": "Usa get_server_info de media-core y resume su estado operativo sin inventar datos.",
     "emptyInput": ""
   },
   "/reasoning": {
@@ -66,7 +126,7 @@
     "emptyInput": ""
   },
   "/ayuda": {
-    "description": "Explica los comandos disponibles.",
+    "description": "Muestra las funciones disponibles y cómo usar sus comandos.",
     "usage": "/ayuda",
     "prompt": "Muestra únicamente una lista breve de los comandos de MedIA y su función. No consultes herramientas ni menciones servidores, versiones, endpoints, errores técnicos o el historial de la conversación.",
     "emptyInput": ""

@@ -99,7 +99,7 @@ def test_same_hermes_turn_produces_written_and_conversational_answers(monkeypatc
     monkeypatch.setattr(m.bridge, "stored_session_id", lambda conversation: None)
     monkeypatch.setattr(m.bridge, "session_identity", lambda conversation: {})
     monkeypatch.setattr(m.bridge, "session_mode", lambda conversation: "local")
-    def run(conversation, prompt, history, update):
+    def run(conversation, prompt, history, update, **options):
         prompts.append(prompt)
         return "Respuesta completa para leer.\n<media_voice>Aquí tienes lo que buscabas. ¿Seguimos con otro vídeo?</media_voice>"
     monkeypatch.setattr(m.bridge, "run", run)

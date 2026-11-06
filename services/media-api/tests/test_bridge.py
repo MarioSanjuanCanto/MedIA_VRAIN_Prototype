@@ -17,6 +17,76 @@ def make_bridge(tmp_path, monkeypatch, mode='auto', key='secret'):
     return HermesBridge(tmp_path)
 
 
+def test_missing_media_tools_stops_before_prompt_or_model(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='local')
+    monkeypatch.setattr(bridge, '_start', lambda: None)
+    bridge.sessions['conversation'] = 's1'
+    sent = []
+    monkeypatch.setattr(bridge, '_send', lambda method, params: sent.append((method, params)) or method)
+    bridge.frames.put({'id': 'tools.show', 'result': {'sections': [
+        {'name': 'terminal', 'tools': [{'name': 'terminal'}]}
+    ]}})
+    with pytest.raises(RuntimeError, match='no tiene las herramientas'):
+        bridge.run('conversation', 'Qué pasa en APUNT', [], lambda *a: None,
+                   required_tools=['media_scene_context'])
+    assert [name for name, _ in sent] == ['tools.show']
+
+
+def test_media_tools_snapshot_accepts_real_mcp_prefix(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='local')
+    monkeypatch.setattr(bridge, '_start', lambda: None)
+    bridge.sessions['conversation'] = 's1'
+    sent = []
+    monkeypatch.setattr(bridge, '_send', lambda method, params: sent.append((method, params)) or method)
+    bridge.frames.put({'id': 'tools.show', 'result': {'sections': [
+        {'name': 'mcp_media_core', 'tools': [{'name': 'mcp_media_core_media_scene_context'}]}
+    ]}})
+    bridge.frames.put({'method': 'event', 'params': {
+        'type': 'message.complete', 'session_id': 's1', 'payload': {'text': 'Respuesta desde las imágenes'},
+    }})
+    result = bridge.run('conversation', 'Qué pasa en APUNT', [], lambda *a: None,
+                        required_tools=['media_scene_context'])
+    assert result == 'Respuesta desde las imágenes'
+    assert [name for name, _ in sent] == ['tools.show', 'prompt.submit']
+
+
+def test_source_generation_uses_fresh_session_and_preserves_chat(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='docker')
+    bridge.sessions['chat'] = 'original-session'
+    keys, deleted = [], []
+    def generate(key, text, history, callback, active, *args):
+        keys.append(key)
+        assert key != 'chat'
+        assert history == []
+        assert bridge.active_runs['chat'] is active
+        return 'Resumen'
+    monkeypatch.setattr(bridge, '_run_docker', generate)
+    monkeypatch.setattr(bridge, 'delete_session', lambda key: deleted.append(key))
+    assert bridge.run_once('chat', 'source', lambda *a: None) == 'Resumen'
+    assert bridge.run_once('chat', 'source2', lambda *a: None) == 'Resumen'
+    assert len(set(keys)) == 2
+    assert deleted == keys
+    assert bridge.sessions['chat'] == 'original-session'
+    assert not bridge.active_runs
+
+
+def test_generation_cancel_targets_fresh_session_not_chat(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='local')
+    bridge.sessions['chat'] = 'original-session'
+    bridge.process = type('Process', (), {'poll': lambda self: None})()
+    interrupted = []
+    monkeypatch.setattr(bridge, '_send', lambda method, args: interrupted.append((method, args)) or 'rpc')
+    def generate(key, text, history, callback, active, *args):
+        active['owns_local'] = True
+        bridge.sessions[key] = 'temporary-session'
+        assert bridge.interrupt('chat') is True
+        return 'done'
+    monkeypatch.setattr(bridge, '_run_local', generate)
+    monkeypatch.setattr(bridge, 'delete_session', lambda key: None)
+    bridge.run_once('chat', 'source', lambda *a: None)
+    assert interrupted == [('session.interrupt', {'session_id': 'temporary-session'})]
+
+
 def test_auto_prefers_docker_when_gateway_is_available(tmp_path, monkeypatch):
     bridge = make_bridge(tmp_path, monkeypatch)
     monkeypatch.setattr(bridge, '_docker_available', lambda: True)
@@ -86,6 +156,23 @@ def test_docker_sends_bearer_key_and_translates_paths(tmp_path, monkeypatch):
     result = bridge.run('conversation', f'Archivo: {video}', [], lambda *_: None, 'high')
 
     assert str(tmp_path / 'data/outputs/audio/result.wav') in result
+
+
+def test_docker_sends_reference_image_as_visual_content(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='docker')
+    image = 'data:image/jpeg;base64,/9j/2Q=='
+
+    def handler(request):
+        body = __import__('json').loads(request.content)
+        assert body['messages'][-1]['content'] == [
+            {'type': 'text', 'text': 'Busca esta escena'},
+            {'type': 'image_url', 'image_url': {'url': image}},
+        ]
+        return httpx.Response(200, json={'choices': [{'message': {'content': 'Encontrada'}}]})
+
+    bridge._transport = httpx.MockTransport(handler)
+    assert bridge.run('conversation', 'Busca esta escena', [], lambda *_: None,
+                      image_data_url=image) == 'Encontrada'
 
 
 def test_docker_streams_tool_activity(tmp_path, monkeypatch):
@@ -262,7 +349,35 @@ def test_local_hermes_event_contract(tmp_path, monkeypatch):
     assert events == ['tool.complete', 'message.complete']
 
 
-def test_local_session_receives_and_updates_reasoning_effort(tmp_path, monkeypatch):
+def test_local_attaches_reference_image_before_prompt(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='local')
+    monkeypatch.setattr(bridge, '_start', lambda: None)
+    bridge.sessions['conversation'] = 's1'
+    sent = []
+
+    def send(method, params):
+        sent.append((method, params))
+        return method
+
+    monkeypatch.setattr(bridge, '_send', send)
+    bridge.frames.put({'id': 'image.attach_bytes', 'result': {'attached': True}})
+    bridge.frames.put({'method': 'event', 'params': {
+        'type': 'message.complete', 'session_id': 's1', 'payload': {'text': 'Coincide'},
+    }})
+    image = 'data:image/jpeg;base64,/9j/2Q=='
+    events = []
+
+    assert bridge.run('conversation', 'Busca esta escena', [], lambda event, _: events.append(event),
+                      image_data_url=image) == 'Coincide'
+    assert events == ['image.attached', 'message.complete']
+    assert sent == [
+        ('image.attach_bytes', {'session_id': 's1', 'content_base64': image,
+                                'filename': 'referencia.jpg'}),
+        ('prompt.submit', {'session_id': 's1', 'text': 'Busca esta escena'}),
+    ]
+
+
+def test_local_session_keeps_context_when_reasoning_effort_changes(tmp_path, monkeypatch):
     bridge = make_bridge(tmp_path, monkeypatch, mode='local')
     monkeypatch.setattr(bridge, '_start', lambda: None)
     sent = []
@@ -277,20 +392,45 @@ def test_local_session_receives_and_updates_reasoning_effort(tmp_path, monkeypat
     bridge.frames.put({'method': 'event', 'params': {
         'type': 'message.complete', 'session_id': 's1', 'payload': {'text': 'Primera'},
     }})
-    bridge.frames.put({'id': 'session.create', 'result': {'session_id': 's2'}})
     bridge.frames.put({'method': 'event', 'params': {
-        'type': 'message.complete', 'session_id': 's2', 'payload': {'text': 'Segunda'},
+        'type': 'message.complete', 'session_id': 's1', 'payload': {'text': 'Segunda'},
     }})
 
     assert bridge.run('conversation', 'uno', [], lambda *_: None, 'low') == 'Primera'
     assert bridge.run('conversation', 'dos', [{'role': 'user', 'content': 'uno'}], lambda *_: None, 'high') == 'Segunda'
 
     creates = [params for method, params in sent if method == 'session.create']
-    assert [params['reasoning_effort'] for params in creates] == ['low', 'high']
-    assert creates[1]['messages'] == [{'role': 'user', 'content': 'uno'}]
+    assert [params['reasoning_effort'] for params in creates] == ['low']
+    assert [params['session_id'] for method, params in sent if method == 'prompt.submit'] == ['s1', 's1']
 
 
-def test_interrupt_stops_the_active_local_gateway(tmp_path, monkeypatch):
+def test_local_session_resumes_stored_identity_after_gateway_restart(tmp_path, monkeypatch):
+    bridge = make_bridge(tmp_path, monkeypatch, mode='local')
+    monkeypatch.setattr(bridge, '_start', lambda: None)
+    bridge.remember_session('conversation', 'stored-original', 'local')
+    sent = []
+
+    def send(method, params):
+        sent.append((method, params))
+        return method
+
+    monkeypatch.setattr(bridge, '_send', send)
+    bridge.frames.put({'id': 'session.resume', 'result': {
+        'session_id': 'live-resumed', 'resumed': 'stored-original',
+    }})
+    bridge.frames.put({'method': 'event', 'params': {
+        'type': 'message.complete', 'session_id': 'live-resumed', 'payload': {'text': 'Continuamos'},
+    }})
+
+    assert bridge.run('conversation', 'continúa', [], lambda *_: None) == 'Continuamos'
+    assert sent == [
+        ('session.resume', {'session_id': 'stored-original'}),
+        ('prompt.submit', {'session_id': 'live-resumed', 'text': 'continúa'}),
+    ]
+    assert bridge.stored_session_id('conversation') == 'stored-original'
+
+
+def test_interrupt_preserves_the_active_local_session(tmp_path, monkeypatch):
     bridge = make_bridge(tmp_path, monkeypatch, mode='local')
 
     class Process:
@@ -309,13 +449,20 @@ def test_interrupt_stops_the_active_local_gateway(tmp_path, monkeypatch):
     stopped = threading.Event()
     bridge.process = process
     bridge.sessions['conversation'] = 'session-one'
-    bridge.active_runs['conversation'] = {'stop': stopped, 'mode': 'local', 'client': None}
+    bridge.stored_sessions['conversation'] = 'stored-one'
+    active = {'stop': stopped, 'mode': 'local', 'client': None, 'owns_local': True}
+    bridge.active_runs['conversation'] = active
+    sent = []
+    monkeypatch.setattr(bridge, '_send', lambda method, params: sent.append((method, params)) or 'interrupt-rid')
 
     assert bridge.interrupt('conversation') is True
     assert stopped.is_set()
-    assert process.terminated
-    assert bridge.sessions == {}
-    assert bridge.frames.get_nowait() == {'bridge_closed': True}
+    assert not process.terminated
+    assert bridge.sessions == {'conversation': 'session-one'}
+    assert bridge.stored_session_id('conversation') == 'stored-one'
+    assert sent == [('session.interrupt', {'session_id': 'session-one'})]
+    assert active['interrupt_id'] == 'interrupt-rid'
+    assert bridge.frames.get_nowait() == {'bridge_interrupt': True}
     assert bridge.interrupt('other-conversation') is False
 
 
@@ -436,7 +583,7 @@ def test_interrupt_releases_a_local_turn_waiting_for_tool_output(tmp_path, monke
     bridge.process = Process()
     bridge.sessions['conversation'] = 's1'
     monkeypatch.setattr(bridge, '_start', lambda: None)
-    monkeypatch.setattr(bridge, '_send', lambda *args: 'request')
+    monkeypatch.setattr(bridge, '_send', lambda method, params: method)
     tool_started = threading.Event()
     errors = []
 
@@ -454,8 +601,10 @@ def test_interrupt_releases_a_local_turn_waiting_for_tool_output(tmp_path, monke
     }})
     assert tool_started.wait(timeout=2)
     assert bridge.interrupt('conversation') is True
+    bridge.frames.put({'id': 'session.interrupt', 'result': {'status': 'interrupted'}})
     turn.join(timeout=2)
 
     assert not turn.is_alive()
     assert errors
-    assert bridge.process.terminated
+    assert not bridge.process.terminated
+    assert bridge.sessions['conversation'] == 's1'

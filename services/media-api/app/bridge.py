@@ -49,6 +49,7 @@ class HermesBridge:
         self.process = None
         self.frames = queue.Queue()
         self.lock = threading.Lock()
+        self.send_lock = threading.Lock()
         self.sessions = {}
         self.stored_sessions = {}
         self.session_reasoning = {}
@@ -66,13 +67,14 @@ class HermesBridge:
             active['stop'].set()
             mode = active['mode']
             client = active.get('client')
-            session_id = self.sessions.get(conversation)
-            stored_session_id = self.stored_sessions.get(conversation)
+            session_key = active.get('session_key', conversation)
+            session_id = self.sessions.get(session_key)
+            stored_session_id = self.stored_sessions.get(session_key)
             if session_id or stored_session_id:
-                self.orphan_sessions[conversation] = {
+                self.orphan_sessions[session_key] = {
                     'session_id': session_id,
                     'stored_session_id': stored_session_id,
-                    'mode': self.session_modes.get(conversation) or mode,
+                    'mode': self.session_modes.get(session_key) or mode,
                 }
         if client is not None:
             try:
@@ -80,8 +82,28 @@ class HermesBridge:
             except (OSError, RuntimeError, httpx.HTTPError):
                 pass
         if mode == 'local' and active.get('owns_local', True):
+            if session_id and self.process and self.process.poll() is None:
+                try:
+                    active['interrupt_id'] = self._send('session.interrupt', {'session_id': session_id})
+                    # Wake a reader that is waiting for the next Hermes event.
+                    self.frames.put({'bridge_interrupt': True})
+                    return True
+                except (OSError, ValueError):
+                    pass
             self._terminate_local()
         return True
+
+    def remember_session(self, conversation, stored_session_id, mode=None):
+        """Restore the durable Hermes identity from an earlier chat job."""
+        if not stored_session_id or mode not in {None, 'local'}:
+            return
+        with self.active_lock:
+            if conversation not in self.sessions and conversation not in self.stored_sessions:
+                self.orphan_sessions[conversation] = {
+                    'session_id': None,
+                    'stored_session_id': stored_session_id,
+                    'mode': 'local',
+                }
 
     def stored_session_id(self, conversation):
         return self.session_identity(conversation).get('stored_session_id')
@@ -319,8 +341,15 @@ class HermesBridge:
             return
         if not self._local_available():
             raise RuntimeError('Configura HERMES_AGENT_DIR y HERMES_PYTHON en services/media-api/.env.')
-        self.sessions.clear()
-        self.stored_sessions.clear()
+        with self.active_lock:
+            for conversation in self.sessions.keys() | self.stored_sessions.keys():
+                self.orphan_sessions[conversation] = {
+                    'session_id': self.sessions.get(conversation),
+                    'stored_session_id': self.stored_sessions.get(conversation),
+                    'mode': self.session_modes.get(conversation) or 'local',
+                }
+            self.sessions.clear()
+            self.stored_sessions.clear()
         self.frames = queue.Queue()
         self.process = subprocess.Popen(
             [str(self.python), '-u', '-m', 'tui_gateway.entry'], cwd=self.home,
@@ -341,8 +370,9 @@ class HermesBridge:
 
     def _send(self, method, params):
         rid = uuid.uuid4().hex
-        self.process.stdin.write(json.dumps({'jsonrpc': '2.0', 'id': rid, 'method': method, 'params': params}, ensure_ascii=False) + '\n')
-        self.process.stdin.flush()
+        with self.send_lock:
+            self.process.stdin.write(json.dumps({'jsonrpc': '2.0', 'id': rid, 'method': method, 'params': params}, ensure_ascii=False) + '\n')
+            self.process.stdin.flush()
         return rid
 
     def _next(self, deadline):
@@ -367,33 +397,55 @@ class HermesBridge:
                         raise RuntimeError(str(frame['error']))
                     return frame['result']
 
-    def run(self, conversation, text, history, on_event, reasoning_effort=None):
-        active = {'stop': threading.Event(), 'mode': None, 'client': None, 'owns_local': False}
+    def run_once(self, conversation, text, on_event):
+        """Generate in a fresh session, retaining parent cancellation and no source history."""
+        return self.run(conversation, text, [], on_event, ephemeral=True)
+
+    def run(self, conversation, text, history, on_event, reasoning_effort=None, image_data_url=None,
+            ephemeral=False, required_tools=None):
+        session_key = 'generation-' + uuid.uuid4().hex if ephemeral else conversation
+        active = {'stop': threading.Event(), 'mode': None, 'client': None, 'session_key': session_key,
+                  'required_tools': tuple(required_tools or ()),
+                  'owns_local': False, 'interrupt_id': None, 'interrupt_confirmed': False}
         with self.active_lock:
             self.active_runs[conversation] = active
         try:
             mode = self._select_mode()
             with self.active_lock:
                 active['mode'] = mode
-                self.session_modes[conversation] = mode
+                self.session_modes[session_key] = mode
             if active['stop'].is_set():
                 raise RuntimeError('Hermes detenido por el usuario.')
             if mode == 'docker':
-                return self._run_docker(conversation, text, history, on_event, active, reasoning_effort)
-            return self._run_local(conversation, text, history, on_event, active, reasoning_effort)
+                return self._run_docker(session_key, text, history, on_event, active, reasoning_effort, image_data_url)
+            return self._run_local(session_key, text, history, on_event, active, reasoning_effort, image_data_url)
         finally:
             with self.active_lock:
                 if self.active_runs.get(conversation) is active:
                     self.active_runs.pop(conversation, None)
+            if ephemeral:
+                try:
+                    self.delete_session(session_key)
+                except Exception:
+                    # Keep orphan identity for an explicit later cleanup; never
+                    # erase a generation result because session cleanup failed.
+                    pass
 
-    def _run_docker(self, conversation, text, history, on_event, active=None, reasoning_effort=None):
+    def _run_docker(self, conversation, text, history, on_event, active=None,
+                    reasoning_effort=None, image_data_url=None):
         if not self.api_key:
             raise RuntimeError('Configura HERMES_API_KEY en services/media-api/.env para usar Hermes Docker.')
         messages = [
             {**message, 'content': self._to_docker_text(str(message.get('content', '')))}
             for message in history
         ]
-        messages.append({'role': 'user', 'content': self._to_docker_text(text)})
+        user_content = self._to_docker_text(text)
+        if image_data_url:
+            user_content = [
+                {'type': 'text', 'text': user_content},
+                {'type': 'image_url', 'image_url': {'url': image_data_url}},
+            ]
+        messages.append({'role': 'user', 'content': user_content})
         headers = {'X-Hermes-Session-Id': conversation} if conversation else {}
         answer_parts = []
         try:
@@ -426,6 +478,8 @@ class HermesBridge:
                         if response.status_code in {401, 403}:
                             raise RuntimeError('Hermes Docker rechazó la clave HERMES_API_KEY.')
                         response.raise_for_status()
+                        if image_data_url:
+                            on_event('image.attached', {'kind': 'image'})
                         if 'text/event-stream' not in response.headers.get('content-type', ''):
                             try:
                                 payload = json.loads(response.read())
@@ -481,7 +535,8 @@ class HermesBridge:
         on_event('message.complete', {'text': answer})
         return answer
 
-    def _run_local(self, conversation, text, history, on_event, active=None, reasoning_effort=None):
+    def _run_local(self, conversation, text, history, on_event, active=None,
+                   reasoning_effort=None, image_data_url=None):
         text = self._from_docker_text(text)
         history = [
             {**message, 'content': self._from_docker_text(str(message.get('content', '')))}
@@ -499,23 +554,23 @@ class HermesBridge:
                 raise RuntimeError('Hermes detenido por el usuario.')
             deadline = time.monotonic() + 1800
             sid = self.sessions.get(conversation)
-            if sid and self.session_reasoning.get(conversation) != reasoning_effort:
-                self.sessions.pop(conversation, None)
-                self.stored_sessions.pop(conversation, None)
-                self.session_reasoning.pop(conversation, None)
-                sid = None
             if not sid:
-                create_params = {'cwd': str(self.root), 'title': 'MedIA archivo audiovisual', 'messages': history}
-                if reasoning_effort:
-                    create_params['reasoning_effort'] = reasoning_effort
-                rid = self._send('session.create', create_params)
+                orphan = self.orphan_sessions.get(conversation) or {}
+                stored_sid = self.stored_sessions.get(conversation) or orphan.get('stored_session_id')
+                if stored_sid:
+                    rid = self._send('session.resume', {'session_id': stored_sid})
+                else:
+                    create_params = {'cwd': str(self.root), 'title': 'MedIA archivo audiovisual', 'messages': history}
+                    if reasoning_effort:
+                        create_params['reasoning_effort'] = reasoning_effort
+                    rid = self._send('session.create', create_params)
                 while True:
                     frame = self._next(deadline)
                     if frame.get('id') == rid:
                         if frame.get('error'):
                             raise RuntimeError(str(frame['error']))
                         sid = frame['result']['session_id']
-                        stored_sid = frame['result'].get('stored_session_id')
+                        stored_sid = stored_sid or frame['result'].get('stored_session_id')
                         with self.active_lock:
                             if active is not None and active['stop'].is_set():
                                 self.orphan_sessions[conversation] = {
@@ -528,15 +583,59 @@ class HermesBridge:
                                 if stored_sid:
                                     self.stored_sessions[conversation] = stored_sid
                                 self.session_reasoning[conversation] = reasoning_effort
+                                self.orphan_sessions.pop(conversation, None)
                         break
                 if active is not None and active['stop'].is_set():
                     raise RuntimeError('Hermes detenido por el usuario.')
-            rid = self._send('prompt.submit', {'session_id': sid, 'text': text})
-            try:
+            required = active.get('required_tools', ()) if active else ()
+            if required:
+                # Inspect Hermes's own discovery snapshot before submitting a
+                # prompt. A healthy MCP endpoint alone does not mean the agent
+                # actually has its tools, particularly after a restart.
+                tool_rid = self._send('tools.show', {'session_id': sid})
+                snapshot = self._wait_for_rpc(tool_rid, min(deadline, time.monotonic() + 10))
+                names = {item.get('name', '') for section in snapshot.get('sections', [])
+                         for item in section.get('tools', [])}
+                missing = [tool for tool in required if not any(
+                    name == tool or name.endswith('_' + tool) for name in names)]
+                if missing:
+                    raise RuntimeError('La sesión de Hermes no tiene las herramientas de Media Core: '
+                                       + ', '.join(missing)
+                                       + '. Reconecta Media Core y abre una sesión nueva. No se ha enviado la petición al modelo.')
+            if image_data_url:
+                attach_rid = self._send('image.attach_bytes', {
+                    'session_id': sid, 'content_base64': image_data_url, 'filename': 'referencia.jpg',
+                })
                 while True:
                     if active is not None and active['stop'].is_set():
+                        self._terminate_local()
                         raise RuntimeError('Hermes detenido por el usuario.')
                     frame = self._next(deadline)
+                    if frame.get('id') == attach_rid:
+                        if frame.get('error'):
+                            raise RuntimeError(f'Hermes no pudo recibir la imagen: {frame["error"]}')
+                        if not (frame.get('result') or {}).get('attached'):
+                            raise RuntimeError('Hermes no confirmó la imagen adjunta.')
+                        on_event('image.attached', {'kind': 'image'})
+                        break
+                if active is not None and active['stop'].is_set():
+                    self._terminate_local()
+                    raise RuntimeError('Hermes detenido por el usuario.')
+            with self.active_lock:
+                if active is not None and active['stop'].is_set():
+                    raise RuntimeError('Hermes detenido por el usuario.')
+                rid = self._send('prompt.submit', {'session_id': sid, 'text': text})
+            try:
+                while True:
+                    stopping = active is not None and active['stop'].is_set()
+                    if stopping:
+                        active.setdefault('interrupt_deadline', time.monotonic() + 5)
+                    frame = self._next(min(deadline, active['interrupt_deadline']) if stopping else deadline)
+                    if stopping:
+                        if frame.get('id') == active.get('interrupt_id'):
+                            active['interrupt_confirmed'] = not bool(frame.get('error'))
+                            raise RuntimeError('Hermes detenido por el usuario.')
+                        continue
                     if frame.get('id') == rid and frame.get('error'):
                         raise RuntimeError(str(frame['error']))
                     params = frame.get('params') or {}
@@ -556,7 +655,9 @@ class HermesBridge:
                         return payload.get('text', '')
             except Exception:
                 if active is not None and active['stop'].is_set():
-                    self._terminate_local()
+                    if not active.get('interrupt_confirmed'):
+                        self._terminate_local()
+                    raise RuntimeError('Hermes detenido por el usuario.')
                 elif self.process and self.process.poll() is None:
                     self._send('session.interrupt', {'session_id': sid})
                 self.sessions.pop(conversation, None)

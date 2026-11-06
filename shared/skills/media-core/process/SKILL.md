@@ -1,34 +1,14 @@
 ---
 name: media-core-process
-description: Orquesta con Media Core el flujo completo desde un archivo audiovisual hasta una transcripción y uno o más clips. Úsala cuando la petición abarque el procesamiento completo, no para operar únicamente sobre una transcripción ya disponible.
+description: Prepara con Media Core un archivo nuevo, selecciona clips con Hermes y genera los cortes validados. Úsala para transcripción y clips en un mismo flujo.
 ---
 
-# Procesar contenido audiovisual con Media Core
+# Procesar un vídeo
 
-Usa la herramienta `media_process` del servidor Media Core para coordinar transcripción y extracción de clips en un solo trabajo. Consulta el nombre y el esquema registrados en el cliente antes de invocarla; algunos clientes añaden un prefijo al nombre de la herramienta.
+1. Identifica la fuente y llama a `media_transcribe(source=..., language="auto", diarization=False, index_transcript=True, background=True)`. Activa diarización cuando se necesite.
+2. Conserva job_id y espera con `media_job_status` hasta completed o failed. Comprueba el resultado; no dupliques la transcripción.
+3. Busca con los índices para un tema concreto, o lee `media_read_transcript` y sus páginas para destacados generales. Selecciona tú desde la evidencia.
+4. Llama a `media_clips` con candidates: tiempos en segundos, título y match_evidence literal de al menos 12 caracteres del intervalo. Para turnos de una persona, usa `media_speakers` y sus índices; para tiempos conocidos, pásalos directamente.
+5. Confirma cut_status y la ruta de cada MP4 antes de entregarlo. Una propuesta temporal sin archivo no es un clip generado.
 
-## Uso obligatorio de Media Core
-
-Para cualquier tarea cubierta por esta skill, debes usar obligatoriamente el MCP de Media Core y su herramienta `media_process`. No sustituyas este flujo por scripts locales, comandos de shell, bibliotecas, otros MCP ni servicios externos. Si el MCP o la herramienta no están disponibles, informa de ello y solicita que se conecte Media Core; no ejecutes la tarea mediante una alternativa.
-
-## Preparar la operación
-
-- Identifica la fuente exacta solicitada. No sustituyas el archivo o identificador por otro contenido disponible.
-- Conserva la consulta temática del usuario cuando quiera clips sobre un asunto concreto; déjala vacía cuando quiera una selección general.
-- Elige idioma de transcripción, diarización, modo de selección y cantidad de clips según la petición y las capacidades declaradas por el esquema. No deduzcas el idioma de la transcripción a partir del idioma en que el usuario quiere recibir la respuesta.
-- Si falta una elección no esencial, usa el valor predeterminado de la herramienta. Pregunta solo cuando la decisión cambie materialmente el resultado.
-
-## Ejecutar y seguir el trabajo
-
-1. Llama una sola vez a `media_process` con la fuente y las opciones resueltas.
-2. Conserva el `job_id` devuelto. No lances en paralelo transcripción ni extracción de clips para la misma solicitud.
-3. Consulta `media_job_status` al intervalo sugerido por la respuesta. Continúa mientras el estado sea `queued` o `running` y termina al llegar a `completed` o `failed`.
-4. Al usar `after_sequence`, conserva la última secuencia observada para no procesar eventos duplicados.
-
-## Validar y entregar
-
-- Considera completado el flujo solo si el estado final y el resultado indican éxito.
-- Comprueba que la transcripción pertenece a la fuente solicitada y revisa sus advertencias.
-- Para cada clip, distingue entre una propuesta temporal y un archivo generado. Solo presenta un clip como archivo cuando la salida incluya una ruta no vacía y un estado de corte satisfactorio.
-- Devuelve únicamente rutas y metadatos presentes en la respuesta de la herramienta.
-- Si falla una fase, informa de la fase, el mensaje devuelto y cualquier resultado parcial válido. No repitas llamadas equivalentes ni sustituyas el flujo por herramientas externas salvo que el usuario lo pida.
+No uses `media_process` para la selección habitual: la ruta heredada delega de nuevo en un modelo editorial. No uses scripts locales ni FFmpeg manual. Para narración, redacta desde el intervalo elegido y pasa text a `media_tts` con provider="piper". Ante errores, conserva los resultados válidos y explica qué parte falta.

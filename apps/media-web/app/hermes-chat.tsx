@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { AlertCircle, ArrowUp, AudioLines, Bot, Check, Download, Film, Image as ImageIcon, LoaderCircle, MessageSquare, Plus, Square } from 'lucide-react';
+import { AlertCircle, ArrowUp, AudioLines, Bot, Check, Download, Film, Image as ImageIcon, LoaderCircle, MessageSquare, Mic, Paperclip, Plus, Square, X } from 'lucide-react';
 import commandDefinitions from './chat-commands.json';
+import { insertIntoDraft } from './chat-draft';
+import { buildChatRequest } from './chat-requests';
 import { canStartNewConversation, isCurrentConversation } from './chat-lifecycle';
 import VoiceAvatar from './voice-avatar';
 
@@ -32,6 +34,7 @@ type ChatJob = {
   progress?: number;
   artifacts?: Artifact[];
   events?: ChatActivity[];
+  attachment?: { name: string; kind: 'image' | 'audio' | 'video'; preview?: string };
 };
 
 type HermesChatProps = {
@@ -99,27 +102,17 @@ function statusReasoning(status: ReasoningStatus, fallback: ReasoningEffort) {
 }
 const suggestions = [
   '¿Qué vídeos hay disponibles?',
-  '¿Qué vídeos tienen transcripción?',
+  '/ayuda',
   '¿Qué puedo consultar sobre mis vídeos?',
 ];
 const slashCommands = Object.entries(commandDefinitions).map(([name, definition]) => ({ name, ...definition }));
 const commandHelpText = [
-  'Lista de estructuras de comando:',
+  'Funciones disponibles y cómo usarlas:',
   '',
   ...slashCommands
     .filter(command => command.name !== '/ayuda')
     .map(command => `- ${command.usage} — ${command.description}`),
 ].join('\n');
-
-function expandSlashCommand(message: string) {
-  const clean = message.trim();
-  const match = /^(\/\S+)(?:\s+([\s\S]*))?$/.exec(clean);
-  if (!match) return clean;
-  const definition = commandDefinitions[match[1].toLowerCase() as keyof typeof commandDefinitions];
-  if (!definition) return clean;
-  const input = match[2]?.trim() || definition.emptyInput;
-  return definition.prompt.replace('{{input}}', input);
-}
 
 function healthDiagnostic(health: SystemHealth | null) {
   if (!health) {
@@ -185,6 +178,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     );
   }
   return response.json();
+}
+
+async function imageThumbnail(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const scale = Math.min(1, 320 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext('2d');
+    if (!context) return '';
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.72);
+  } finally {
+    bitmap.close();
+  }
 }
 
 function getJobMedia(job: ChatJob): Artifact[] {
@@ -360,6 +371,26 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
   const [jobs, setJobs] = useState<ChatJob[]>([]);
   const [conversationId, setConversationId] = useState('');
   const [draft, setDraft] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const discardRecordingRef = useRef(false);
+  useEffect(() => () => {
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    discardRecordingRef.current = true;
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+    recordingStreamRef.current?.getTracks().forEach(track => track.stop());
+  }, []);
+  const [attachmentPreview, setAttachmentPreview] = useState<{ file: File; url: string } | null>(null);
+  useEffect(() => {
+    if (!attachment) { setAttachmentPreview(null); return; }
+    const url = URL.createObjectURL(attachment);
+    setAttachmentPreview({ file: attachment, url });
+    return () => URL.revokeObjectURL(url);
+  }, [attachment]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [voiceBusy, setVoiceBusy] = useState(false);
@@ -372,6 +403,7 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
   const [activeCommand, setActiveCommand] = useState(0);
   const [commandMenuDismissed, setCommandMenuDismissed] = useState(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const attachmentInput = useRef<HTMLInputElement>(null);
   const end = useRef<HTMLDivElement>(null);
   const conversationEpoch = useRef(0);
   const pending = jobs.find(job => job.status === 'queued' || job.status === 'running');
@@ -391,6 +423,63 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
   const commandMenuOpen = !reasoningMenuOpen && !commandMenuDismissed && filteredCommands.length > 0;
   const autocompleteOpen = reasoningMenuOpen || commandMenuOpen;
 
+  async function startRecording() {
+    if (loading || busy || voiceBusy || recording) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      setError('Este navegador no permite grabar audio. Puedes adjuntar un archivo.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ['audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm;codecs=opus', 'audio/webm']
+        .find(type => MediaRecorder.isTypeSupported(type));
+      if (!mimeType) {
+        stream.getTracks().forEach(track => track.stop());
+        throw new Error('Este navegador no ofrece un formato de audio compatible.');
+      }
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const chunks: BlobPart[] = [];
+      discardRecordingRef.current = false;
+      recordingStreamRef.current = stream;
+      recorderRef.current = recorder;
+      recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+      recorder.onerror = () => { setError('No se pudo grabar el audio. Inténtalo de nuevo.'); stopRecording(true); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach(track => track.stop());
+        recordingStreamRef.current = null;
+        recorderRef.current = null;
+        if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+        setRecording(false);
+        if (discardRecordingRef.current) return;
+        const blob = new Blob(chunks, { type: mimeType });
+        if (!blob.size) { setError('La grabación está vacía. Inténtalo de nuevo.'); return; }
+        const extension = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+        setAttachment(new File([blob], `grabacion-${Date.now()}.${extension}`, { type: mimeType }));
+        setError('');
+      };
+      recorder.start(1000);
+      setRecordingSeconds(0);
+      setRecording(true);
+      setError('');
+      const startedAt = Date.now();
+      recordingTimerRef.current = setInterval(() => {
+        const seconds = Math.floor((Date.now() - startedAt) / 1000);
+        setRecordingSeconds(seconds);
+        if (Date.now() - startedAt >= 29500 && recorder.state === 'recording') recorder.stop();
+      }, 250);
+    } catch (cause) {
+      setError(cause instanceof Error && cause.name === 'NotAllowedError'
+        ? 'Permite el acceso al micrófono en el navegador para grabar.'
+        : (cause as Error).message || 'No se pudo iniciar la grabación.');
+    }
+  }
+
+  function stopRecording(discard = false) {
+    discardRecordingRef.current = discard;
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+  }
+
   function selectCommand(command: (typeof slashCommands)[number]) {
     setDraft(command.name + ' ');
     if (command.name === '/reasoning') {
@@ -406,6 +495,19 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
     setDraft(`/reasoning ${option}`);
     setCommandMenuDismissed(true);
     textarea.current?.focus();
+  }
+
+  function insertArtifactName(name: string) {
+    const input = textarea.current;
+    const selectionStart = input?.selectionStart ?? draft.length;
+    const selectionEnd = input?.selectionEnd ?? selectionStart;
+    const next = insertIntoDraft(draft, name, selectionStart, selectionEnd);
+    setDraft(next.draft);
+    setCommandMenuDismissed(true);
+    window.requestAnimationFrame(() => {
+      textarea.current?.focus();
+      textarea.current?.setSelectionRange(next.cursor, next.cursor);
+    });
   }
 
   function appendLocalResult(command: string, answer: string, startedAt = Date.now()) {
@@ -487,8 +589,16 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
   }, [jobs.length, pending?.stage, pending?.status]);
 
   async function send(message = draft, fromVoice = false, spokenLanguage = voiceLanguage) {
-    const clean = message.trim();
+    const clean = message.trim() || (attachment ? 'Busca momentos similares a este archivo y comprueba los resultados.' : '');
     if (!clean) return;
+    if (attachment && clean.startsWith('/')) {
+      setError('Quita el archivo adjunto antes de usar un comando del chat.');
+      return;
+    }
+    if (attachment && attachment.size > 50 * 1048576) {
+      setError('El archivo de referencia supera 50 MB.');
+      return;
+    }
     const operationEpoch = conversationEpoch.current;
     if (clean.toLowerCase() === '/ayuda') {
       appendLocalResult('/ayuda', commandHelpText);
@@ -564,7 +674,7 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
       return;
     }
     if (busy || (voiceBusy && !fromVoice)) return;
-    const expanded = clean.toLowerCase().startsWith('/clips-todos ') ? clean : expandSlashCommand(clean);
+    const commandRequest = buildChatRequest(clean, commandDefinitions);
     const targetConversationId = conversationId || window.crypto.randomUUID();
     if (!conversationId) {
       setConversationId(targetConversationId);
@@ -573,15 +683,26 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
     setSubmitting(true);
     setError('');
     try {
-      const created = await request<ChatJob>('/chat/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: expanded, conversation_id: targetConversationId, reasoning_effort: reasoningEffort,
-          voice_language: spokenLanguage }),
-      });
+      const payload = { ...commandRequest, conversation_id: targetConversationId,
+        reasoning_effort: reasoningEffort, voice_language: spokenLanguage };
+      const form = new FormData();
+      if (attachment) {
+        form.set('payload', JSON.stringify(payload));
+        form.set('file', attachment);
+        if (attachment.type.startsWith('image/') || /\.(?:jpe?g|png|webp)$/i.test(attachment.name)) {
+          const thumbnail = await imageThumbnail(attachment).catch(() => '');
+          if (thumbnail.length <= 120000) form.set('preview', thumbnail);
+        }
+      }
+      const created = await request<ChatJob>(attachment ? '/chat/jobs/with-media' : '/chat/jobs',
+        attachment ? { method: 'POST', body: form } : {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        });
       if (!isCurrentConversation(operationEpoch, conversationEpoch.current)) return;
       setJobs(previous => [...previous, created]);
       setDraft('');
+      setAttachment(null);
+      if (attachmentInput.current) attachmentInput.current.value = '';
     } catch (cause) {
       if (isCurrentConversation(operationEpoch, conversationEpoch.current)) {
         setError((cause as Error).message);
@@ -629,6 +750,8 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
       setConversationId('');
       setJobs([]);
       setDraft('');
+      setAttachment(null);
+      if (attachmentInput.current) attachmentInput.current.value = '';
       setSubmitting(false);
       setStopping(false);
       setLocalCommandLabel('');
@@ -664,7 +787,7 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
             <div className="chat-empty">
               <span className="chat-empty-icon"><MessageSquare size={25} /></span>
               <h2>¿Qué quieres hacer?</h2>
-              <p>Consulta los vídeos disponibles o pide ayuda para empezar.</p>
+              <p>Resume vídeos, encuentra momentos, crea clips o consulta sus imágenes y hablantes. Escribe / para ver las funciones.</p>
               <div className="chat-suggestions" aria-label="Sugerencias">
                 {suggestions.map(suggestion => (
                   <button key={suggestion} onClick={() => { setDraft(suggestion); textarea.current?.focus(); }}>
@@ -681,7 +804,10 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
                   <li key={job.id}>
                     <article className="chat-message user-message">
                       <span className="message-author">Tú</span>
-                      <p>{job.message}</p>
+                      <p>{buildChatRequest(job.message, commandDefinitions).message}</p>
+                      {job.attachment?.preview && <img className="chat-message-reference-image"
+                        src={job.attachment.preview} alt={`Imagen adjunta: ${job.attachment.name}`} />}
+                      {job.attachment && <span className="chat-attached-file"><Paperclip size={13}/>{job.attachment.name}</span>}
                     </article>
                     <article className={job.status === 'failed' ? 'chat-message assistant-message failed' : 'chat-message assistant-message'}>
                       <span className="message-author"><Bot size={15} />MedIA</span>
@@ -696,10 +822,16 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
                                 return (
                                   <div className={`chat-media-card ${isImage ? 'chat-image-card' : isVideo ? 'chat-video-card' : 'chat-audio-card'}`} key={media.url || idx}>
                                     <div className="chat-media-header">
-                                      <div className="chat-media-title">
+                                      <button
+                                        type="button"
+                                        className="chat-media-title"
+                                        onClick={() => insertArtifactName(media.name)}
+                                        title={`Usar ${media.name} en el mensaje`}
+                                        aria-label={`Usar ${media.name} en el mensaje`}
+                                      >
                                         {isImage ? <ImageIcon size={15} /> : isVideo ? <Film size={15} /> : <AudioLines size={15} />}
                                         <span title={media.name}>{media.name}</span>
-                                      </div>
+                                      </button>
                                       <a
                                         href={media.url + '?download=true'}
                                         download={media.name}
@@ -730,12 +862,12 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
                       ) : job.status === 'cancelled' ? (
                         <div className="chat-cancelled">
                           <p>Generación detenida.</p>
-                          <button className="text-button" onClick={() => send(job.message)} disabled={busy}>Volver a intentar</button>
+                          {job.attachment ? <small>Vuelve a adjuntar el archivo para repetir la búsqueda.</small> : <button className="text-button" onClick={() => send(job.message)} disabled={busy}>Volver a intentar</button>}
                         </div>
                       ) : job.status === 'failed' ? (
                         <div className="chat-failure">
                           <p><AlertCircle size={16} />{job.error ? mediaUiText(job.error) : 'MedIA no pudo completar la petición.'}</p>
-                          <button className="text-button" onClick={() => send(job.message)} disabled={busy}>Volver a intentar</button>
+                          {job.attachment ? <small>Vuelve a adjuntar el archivo para repetir la búsqueda.</small> : <button className="text-button" onClick={() => send(job.message)} disabled={busy}>Volver a intentar</button>}
                         </div>
                       ) : (
                         <div className="chat-progress" aria-label={`${mediaUiText(job.stage)}: ${job.progress || 0}%`}>
@@ -885,7 +1017,7 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
                 send();
               }
             }}
-            placeholder="Escribe una petición sobre el proyecto…"
+            placeholder="Pregunta por un vídeo o adjunta una imagen, audio o clip para buscar momentos…"
             maxLength={12000}
             rows={3}
             disabled={loading || busy || voiceBusy}
@@ -897,6 +1029,43 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
               ? `hermes-reasoning-${activeCommand}`
               : commandMenuOpen ? `hermes-command-${activeCommand}` : undefined}
           />
+          <div className="chat-attachment-row">
+            <input ref={attachmentInput} className="chat-attachment-input" type="file"
+              accept="image/jpeg,image/png,image/webp,audio/wav,audio/mpeg,audio/ogg,audio/mp4,video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-m4v"
+              aria-label="Adjuntar imagen, audio o vídeo de referencia"
+              onChange={event => {
+                const selected = event.target.files?.[0] || null;
+                if (selected && selected.size > 50 * 1048576) {
+                  setError('El archivo de referencia supera 50 MB.');
+                  event.target.value = '';
+                  return;
+                }
+                setError('');
+                setAttachment(selected);
+              }} />
+            {recording ? <div className="chat-recording-status" role="status">
+              <span className="chat-recording-dot" aria-hidden="true" />Grabando {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, '0')} / 0:30
+              <button type="button" onClick={() => stopRecording()}>Detener</button>
+              <button type="button" onClick={() => stopRecording(true)}>Cancelar</button>
+            </div> : attachment ? <div className="chat-selected-attachment">
+              {attachmentPreview?.file === attachment && (
+                attachment.type.startsWith('image/') || /\.(?:jpe?g|png|webp)$/i.test(attachment.name)
+                  ? <img src={attachmentPreview.url} alt={`Vista previa de ${attachment.name}`} />
+                  : attachment.type.startsWith('video/')
+                    ? <video src={attachmentPreview.url} controls preload="metadata" aria-label={`Vista previa de ${attachment.name}`} />
+                    : <audio src={attachmentPreview.url} controls preload="metadata" aria-label={`Vista previa de ${attachment.name}`} />
+              )}
+              <div className="chat-selected-attachment-info"><Paperclip size={14}/><span title={attachment.name}>{attachment.name}</span>
+                <button type="button" aria-label="Quitar archivo adjunto" onClick={() => {
+                  setAttachment(null);
+                  if (attachmentInput.current) attachmentInput.current.value = '';
+                }}><X size={14}/></button></div>
+            </div> : <button type="button" className="chat-attach-button" disabled={loading || busy || voiceBusy}
+              onClick={() => attachmentInput.current?.click()}><Paperclip size={14}/>Adjuntar referencia</button>}
+            {!recording && <button type="button" className="chat-attach-button" disabled={loading || busy || voiceBusy}
+              onClick={startRecording} aria-label="Grabar audio de referencia"><Mic size={15}/>Grabar audio</button>}
+            <small>Imagen, audio o clip · 50 MB máx. · audio/vídeo hasta 30 s</small>
+          </div>
           <div className="chat-composer-footer">
             <p id="hermes-prompt-help">Escribe / para ver comandos · Enter para enviar</p>
             {pending ? (
@@ -905,14 +1074,13 @@ export default function HermesChat({ available, mode }: HermesChatProps) {
                 {stopping ? 'Deteniendo…' : 'Detener generación'}
               </button>
             ) : (
-              <button className="primary" type="submit" disabled={loading || busy || voiceBusy || !draft.trim() || (!available && !localCommandRequested)}>
+              <button className="primary" type="submit" disabled={loading || busy || voiceBusy || recording || (!draft.trim() && !attachment) || (!available && !localCommandRequested)}>
                 {busy ? <LoaderCircle className="spin" size={17} /> : <ArrowUp size={17} />}
                 {localCommandLabel || (busy ? 'MedIA está trabajando' : 'Enviar')}
               </button>
             )}
           </div>
         </form>
-        <p className="chat-safety">MedIA puede modificar archivos mediante sus herramientas. Las acciones que requieran confirmación interactiva deben continuarse en MedIA Desktop.</p>
       </div>
     </section>
   );

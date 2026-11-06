@@ -347,8 +347,9 @@ definir para utilizar la ruta de subida por streaming incluida.
 | Función | Modelo/motor | Dónde se ejecuta |
 | --- | --- | --- |
 | Agente Hermes | Modelo seleccionado en su perfil OpenRouter | Remoto |
-| Resúmenes y selección editorial | `google/gemma-4-31b-it` | OpenRouter; `OPENROUTER_MODEL` |
-| Interpretación visual | `google/gemma-4-31b-it` | OpenRouter; `OPENROUTER_VISION_MODEL` |
+| Resúmenes y selección editorial | Modelo de Hermes, desde evidencia de Media Core | API: `MEDIA_GENERATION_BACKEND=hermes` (predeterminado) |
+| Descripción visual puntual | Visión de Hermes mediante `vision_analyze` | Nativa si el modelo/proveedor la admiten; auxiliar en otro caso |
+| Generación heredada e indexación visual temporal | `google/gemma-4-31b-it` | OpenRouter; `OPENROUTER_MODEL` / `OPENROUTER_VISION_MODEL` |
 | Transcripción de vídeos | WhisperX con faster-whisper large-v3 en el servicio publicado | Replicate; versión fijada en `REPLICATE_MODEL` |
 | Diarización | pyannote a través de WhisperX | Remota; permisos HF cuando se solicita |
 | Búsqueda semántica textual | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Local + ChromaDB |

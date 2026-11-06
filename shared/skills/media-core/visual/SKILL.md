@@ -3,6 +3,9 @@ name: media-core-visual
 description: Búsqueda visual multimodal (CLIP) e inspección de fotogramas con modelo de visión (VLM) para responder preguntas sobre apariencia física, vestimenta, personas en plató, objetos, escenarios o entregar fotos/fotogramas de los vídeos.
 ---
 
+Para visión, si aparece `vision_image_path`, inspecciónalo UNA VEZ con `vision_analyze`: reúne todos los evidence_frames en orden con sus segundos rotulados. No repitas el análisis de cada fotograma salvo que necesites ampliar un detalle. Si no hay lámina, inspecciona cada evidence_frame.
+
+
 # Análisis Visual e Inspección de Fotogramas con Media Core
 
 Usa las herramientas visuales de Media Core para responder preguntas sobre lo que **se ve** físicamente en pantalla, quién aparece, cómo va vestida una persona, qué decorado hay, o cuando el usuario pida una foto o fotograma.
@@ -26,11 +29,11 @@ identidades únicas.
    - Ejemplos de `query`: `"presentadora de noticias"`, `"presentador en plató"`, `"estudio de televisión"`, `"reportera en la calle"`, `"coche de policía"`, `"helicóptero"`.
    - Devuelve las marcas de tiempo (`start_time`), puntuación y ruta del fotograma (`keyframe`).
 
-2. **`media_describe_scene(video_id=..., timestamp=..., person=..., action_query=..., prompt=..., multi_frame=True)`**:
-   - Envía el fotograma o ráfaga temporal de fotogramas al modelo de visión (VLM) para obtener una descripción visual rigurosa.
+2. **`media_scene_context(video_id=..., timestamp=..., person=..., action_query=..., prompt=..., multi_frame=True)`**:
+   - Prepara fotogramas, tiempos, OCR y transcripción sin consultar un VLM. Inspecciona TODOS los evidence_frames con vision_analyze y redacta tú la descripción. Si tu modelo tiene visión nativa, recibe los píxeles; en otro caso Hermes consulta su auxiliar visual y sigue habiendo coste remoto.
    - Parámetros clave:
      - `timestamp`: Segundo exacto a examinar (convierte minutos a segundos si el usuario dice "minuto 1:30" -> `90.0`).
-     - `person`: Nombre o rol de la persona sobre la que focalizar el análisis (ej: `"Salvador Illa"`, `"reportera"`, `"presentador"`). El VLM verificará si aparece (`person_detected`) y su cargo/rol (`person_role_identified`).
+     - `person`: Nombre o rol de la persona sobre la que focalizar el análisis (ej: `"Salvador Illa"`, `"reportera"`, `"presentador"`). Verifica visualmente si aparece; la diarización del hablante no demuestra quién se ve en pantalla.
      - `action_query`: Pregunta concreta sobre la acción o suceso (ej: `"¿qué está haciendo con las manos?"`, `"¿cómo reacciona al aplauso?"`).
      - `multi_frame`: (Por defecto `True`) analiza una secuencia temporal de 3 fotogramas contiguos para comprender movimiento continuo y lenguaje corporal.
      - `prompt`: Instrucción o detalle adicional opcional.
@@ -58,17 +61,18 @@ identidades únicas.
 
 Cuando el usuario pregunte qué ocurre en un minuto concreto o qué hace una persona en ese momento:
 1. **Convierte el tiempo a segundos**: Por ejemplo, minuto 2:15 = 135.0s, minuto 1 = 60.0s.
-2. **Llama directamente a `media_describe_scene`**:
-   `media_describe_scene(video_id="TV01", timestamp=60.0, person="Salvador Illa", action_query="¿qué está pasando o haciendo?")`
+2. **Llama directamente a `media_scene_context`**:
+   `media_scene_context(video_id="TV01", timestamp=60.0, person="Salvador Illa", action_query="¿qué está pasando o haciendo?")`
 3. **Si el usuario no especifica el minuto exacto**:
    - Usa `media_search(query="Salvador Illa", video_id="TV01")` o `media_search_visual(query="Salvador Illa", video_id="TV01")` para ubicar el segundo donde interviene.
-   - Seguidamente inspecciona ese instante con `media_describe_scene`.
-4. **Respuesta final**: Explica de manera concisa y clara lo que muestra la imagen, la postura, la acción que realiza y los elementos contextuales detectados. Si es pertinente, adjunta el fotograma con `![Fotograma](/api/keyframes/{video_id}/{filename})`.
+   - Seguidamente inspecciona ese instante con `media_scene_context`.
+4. **Inspección**: Mira todos los evidence_frames con vision_analyze y conserva sus tiempos; no afirmes haber visto la imagen solo por recibir su ruta.
+5. **Respuesta final**: Explica de manera concisa y clara lo que muestra la imagen, la postura, la acción que realiza y los elementos contextuales detectados. Si es pertinente, adjunta el fotograma con `![Fotograma](/api/keyframes/{video_id}/{filename})`.
 
 ## Cómo entregar fotos o fotogramas
 
 Cuando el usuario pida una foto ("Dame una foto", "enséñame el fotograma", "¿tienes una imagen?"):
-- `media_describe_scene` ya devuelve directamente los campos listos para usar:
+- `media_scene_context` ya devuelve directamente los campos listos para usar:
   - `markdown_image`: `![Descripción](/api/keyframes/{video_id}/{filename})`
   - `media_line`: `MEDIA:<ruta_absoluta>`
   - `keyframe_url`: `/api/keyframes/{video_id}/{filename}`

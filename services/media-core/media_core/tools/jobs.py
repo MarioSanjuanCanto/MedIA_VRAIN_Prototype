@@ -5,6 +5,8 @@ import threading
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout, CancelledError
+import math
 
 from media_core.runtime import CancellationRequested, _cancel_event, _reporter, check_cancelled, progress
 
@@ -110,12 +112,25 @@ def _submit(operation, arguments, owner_id=""):
         return {"status": "queued", "job_id": job_id, "poll_after_seconds": 2}
 
 
-def media_job_status(job_id: str, after_sequence: int = 0) -> dict:
+def media_job_status(job_id: str, after_sequence: int = 0, wait_seconds: float = 0) -> dict:
     """Consulta un trabajo. Los eventos audio_ready se pueden reproducir antes del final.
 
-    Consulta cada 2 segundos mientras está activo; al terminar no sigas consultando.
+    Para doblaje/subtítulos usa wait_seconds=25: el servidor espera hasta ese máximo
+    y devuelve inmediatamente al terminar. No uses terminal, sleep ni esperas fijas.
+    wait_seconds=0 conserva la consulta inmediata para reproducción progresiva.
+    Al alcanzar completed/failed/cancelled no sigas consultando.
     Los trabajos son locales a este proceso y caducan una hora después de terminar.
     """
+    if not math.isfinite(wait_seconds) or not 0 <= wait_seconds <= 25:
+        return {'status': 'error', 'message': 'wait_seconds debe estar entre 0 y 25.'}
+    with _lock:
+        future = _futures.get(job_id)
+    # Never hold the jobs lock while waiting: workers need it to finish/report.
+    if wait_seconds and future is not None:
+        try:
+            future.result(timeout=wait_seconds)
+        except (FutureTimeout, CancelledError):
+            pass
     with _lock:
         _prune()
         if job_id not in _jobs:
@@ -126,6 +141,21 @@ def media_job_status(job_id: str, after_sequence: int = 0) -> dict:
     job["job_id"] = job_id
     job["elapsed_seconds"] = round((time.time() if job["status"] in {"queued", "running", "cancelling"} else job["updated_at"]) - job["created_at"], 3)
     return job
+
+
+def wait_for_media_result(submitted, wait_seconds=25):
+    """Resolve short media jobs within the call, or return a bounded-wait handoff."""
+    if not submitted.get('job_id'):
+        return submitted
+    state = media_job_status(submitted['job_id'], wait_seconds=wait_seconds)
+    if state['status'] in {'completed', 'failed'}:
+        return state['result']
+    if state['status'] in {'cancelled', 'error'}:
+        return {'job_id': submitted['job_id'], 'status': state['status'],
+                'message': state.get('message', 'Trabajo cancelado.')}
+    return {**submitted, 'status': state['status'], 'stage': state.get('stage'),
+            'poll_after_seconds': 0, 'wait_seconds': 25,
+            'next_action': 'Call media_job_status with this job_id and wait_seconds=25. Never use terminal or sleep.'}
 
 
 def _request_cancel(job_id, job):

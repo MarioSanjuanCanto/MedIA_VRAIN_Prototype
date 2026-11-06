@@ -1,8 +1,26 @@
 import asyncio
 import os
+from pathlib import Path
+import os
 from types import SimpleNamespace
 
 import server
+
+
+def test_ffmpeg_homebrew_path_is_added_for_background_processes(tmp_path, monkeypatch):
+    from media_core import config
+
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    for name in ("ffmpeg", "ffprobe"):
+        binary = bindir / name
+        binary.write_text("#!/bin/sh\n", encoding="utf-8")
+        binary.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path / "missing"))
+    monkeypatch.setenv("MEDIA_FFMPEG_DIR", str(bindir))
+
+    assert config.ensure_ffmpeg_on_path() == bindir.resolve()
+    assert os.environ["PATH"].split(os.pathsep)[0] == str(bindir)
 from media_core import config
 from media_core.tools import server_info
 
@@ -11,6 +29,7 @@ def test_all_public_tools_are_registered():
     tools = asyncio.run(server.mcp.list_tools())
 
     assert [tool.name for tool in tools] == [
+        "media_read_transcript", "media_scene_context",
         "media_voice_status", "media_transcribe_microphone", "media_voice_reply",
         "media_process", "media_speak", "media_job_status", "media_job_cancel",
         "media_transcribe",
@@ -18,6 +37,7 @@ def test_all_public_tools_are_registered():
         "media_ocr_video",
         "media_index_visual",
         "media_search_visual",
+        "media_index_multimodal", "media_multimodal_index_status", "media_search_multimodal",
         "media_describe_scene",
         "media_crop_subject",
         "media_identify_person_web",
@@ -27,6 +47,8 @@ def test_all_public_tools_are_registered():
         "media_clips",
         "media_search",
         "media_tts",
+        "media_dub_clip",
+        "media_subtitle_video",
         "media_forget_video",
         "get_server_info",
     ]

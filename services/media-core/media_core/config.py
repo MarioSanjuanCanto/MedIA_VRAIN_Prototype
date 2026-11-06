@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+import shutil
 
 from dotenv import load_dotenv
 
@@ -13,6 +14,34 @@ BASE_DIR = CURRENT_DIR.parent.parent
 
 load_dotenv(CURRENT_DIR / ".env")
 load_dotenv(BASE_DIR / ".env")
+
+
+def ensure_ffmpeg_on_path() -> Path | None:
+    """Expose an installed FFmpeg toolchain to non-login service processes.
+
+    GUI launchers and background agents on macOS commonly omit Homebrew from
+    PATH. ``ffmpeg-python`` is not a replacement for the ffmpeg/ffprobe
+    executables, so resolve their shared directory once at Core startup.
+    """
+    if shutil.which("ffmpeg") and shutil.which("ffprobe"):
+        return Path(shutil.which("ffmpeg")).resolve().parent
+    configured = os.getenv("MEDIA_FFMPEG_DIR", "").strip()
+    candidates = [Path(configured).expanduser()] if configured else []
+    candidates.extend((Path("/opt/homebrew/bin"), Path("/usr/local/bin"), Path("C:/ffmpeg/bin")))
+    for directory in candidates:
+        ffmpeg = directory / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+        ffprobe = directory / ("ffprobe.exe" if os.name == "nt" else "ffprobe")
+        if not (ffmpeg.is_file() and ffprobe.is_file()):
+            continue
+        current = os.environ.get("PATH", "")
+        entries = current.split(os.pathsep) if current else []
+        if str(directory) not in entries:
+            os.environ["PATH"] = str(directory) + (os.pathsep + current if current else "")
+        return directory.resolve()
+    return None
+
+
+FFMPEG_DIR = ensure_ffmpeg_on_path()
 
 SERVER_HOST = os.getenv("MEDIA_HOST", "127.0.0.1")
 SERVER_PORT = int(os.getenv("MEDIA_PORT", "8001"))
@@ -41,6 +70,8 @@ EMBEDDING_CACHE_DIR = DATA_DIR / "models" / "embeddings"
 KEYFRAMES_DIR = DATA_DIR / "cache" / "keyframes"
 VISUAL_CACHE_DIR = DATA_DIR / "cache" / "visual"
 VISUAL_SWEEPS_DIR = DATA_DIR / "cache" / "visual-sweeps"
+MULTIMODAL_CACHE_DIR = DATA_DIR / "cache" / "multimodal"
+MULTIMODAL_QUERY_DIR = DATA_DIR / "state" / "search-uploads"
 TEMPORAL_CACHE_DIR = DATA_DIR / "cache" / "temporal"
 OCR_CACHE_DIR = DATA_DIR / "cache" / "ocr"
 IDENTITIES_CACHE_DIR = DATA_DIR / "cache" / "identities"
@@ -54,6 +85,8 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 KEYFRAMES_DIR.mkdir(parents=True, exist_ok=True)
 VISUAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 VISUAL_SWEEPS_DIR.mkdir(parents=True, exist_ok=True)
+MULTIMODAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+MULTIMODAL_QUERY_DIR.mkdir(parents=True, exist_ok=True)
 TEMPORAL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 IDENTITIES_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -85,6 +118,8 @@ CHROMA_AUTO_INDEX = os.getenv("CHROMA_AUTO_INDEX", "true").strip().lower() in {
     "yes",
     "on",
 }
+MULTIMODAL_MODEL = os.getenv("MULTIMODAL_MODEL", "google/embeddinggemma-2")
+MULTIMODAL_CPU_THREADS = max(1, int(os.getenv("MULTIMODAL_CPU_THREADS", "2")))
 
 
 def get_openrouter_key() -> str:

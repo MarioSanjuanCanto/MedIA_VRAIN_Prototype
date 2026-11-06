@@ -73,7 +73,7 @@ def resolve_video_file(source: str) -> Path | None:
             if candidate.is_file():
                 return candidate
     clean_id = clean.upper()
-    for extension in [".mp4", ".mov", ".mkv", ".wav", ".mp3"]:
+    for extension in [".mp4", ".mov", ".mkv", ".webm", ".m4v", ".wav", ".mp3"]:
         for vdir in search_dirs:
             candidate = vdir / f"{clean_id}{extension}"
             if candidate.exists():

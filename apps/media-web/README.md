@@ -18,6 +18,11 @@ npm run dev
 
 Abre http://127.0.0.1:3000. Media API debe estar disponible en el puerto 8010.
 
+El chat acepta texto y una imagen, audio o clip de referencia en el mismo
+mensaje. Media Core recupera momentos candidatos y MedIA comprueba sus tramos
+antes de responder. La búsqueda por transcripción funciona mientras el índice
+multimodal se completa en segundo plano; la biblioteca muestra ese progreso.
+
 ## Comprobar
 
 ```bash

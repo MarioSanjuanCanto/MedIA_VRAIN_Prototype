@@ -52,7 +52,7 @@ def test_chat_publishes_final_selection_not_exploratory_outputs(tmp_path, monkey
     async def ping(): pass
     monkeypatch.setattr(m, 'mcp_ping', ping)
     job = {'id': 'request', 'conversation_id': 'request', 'created_at': time.time(), 'artifacts': [], 'events': []}
-    def run(conversation, prompt, history, callback):
+    def run(conversation, prompt, history, callback, **options):
         for path in [old, final]:
             callback('tool.start', {'name': 'media_clips'})
             callback('tool.complete', {'name': 'media_clips', 'result': [{'cut_video_file': str(path)}]})
@@ -188,15 +188,16 @@ def test_audio_action_uses_one_tts_call_for_the_whole_text(tmp_path, monkeypatch
     calls = []
     async def call(name, args):
         calls.append(name)
-        if name == 'media_summarize':
-            return {'executive_summary': 'Primera frase. Segunda frase. Tercera frase.'}
+        if name == 'media_read_transcript':
+            return {'status': 'success', 'text': 'Fuente de prueba.', 'next_offset': None, 'source_revision': 'one'}
         assert args['text'] == 'Primera frase. Segunda frase. Tercera frase.'
         return {'audio_file': str(audio)}
     monkeypatch.setattr(m, 'mcp_call', call)
+    monkeypatch.setattr(m.bridge, 'run_once', lambda *a: 'Primera frase. Segunda frase. Tercera frase.')
     job = {'id': 'audio', 'conversation_id': 'audio', 'created_at': time.time(), 'artifacts': [], 'events': []}
     asyncio.run(m.execute(job, m.NewJob(video='TV04.mp4', action='audio')))
     assert job['status'] == 'completed'
-    assert calls == ['media_summarize', 'media_tts']
+    assert calls == ['media_read_transcript', 'media_tts']
     assert len(job['artifacts']) == 1
 
 
@@ -214,17 +215,28 @@ def test_combined_clip_and_voice_request_uses_one_each(tmp_path, monkeypatch):
     async def call(name, args):
         calls.append((name, args))
         if name == 'media_clips':
-            return [{'start_time': '00:19:54', 'end_time': '00:22:10', 'cut_video_file': str(tmp_path / 'clip.mp4')}]
-        if name == 'media_summarize':
-            return {'executive_summary': 'Resumen del turno.'}
+            assert args['candidates']
+            return [{'start_time': '00:19:54', 'end_time': '00:22:10', 'start_seconds': 1194, 'end_seconds': 1330,
+                     'cut_video_file': str(tmp_path / 'clip.mp4')}]
+        if name == 'media_read_transcript':
+            return {'status': 'success', 'text': '[1194 -> 1330] Contenido literal del turno de VOX.',
+                    'has_timestamps': True, 'next_offset': None, 'source_revision': 'one'}
         return {'audio_file': str(tmp_path / 'voice.wav')}
     (tmp_path / 'clip.mp4').write_bytes(b'clip')
     (tmp_path / 'voice.wav').write_bytes(b'voice')
     monkeypatch.setattr(m, 'mcp_call', call)
+    def generate(conversation, prompt, callback):
+        if '"clips"' in prompt:
+            return json.dumps({'clips': [{'start_seconds': 1194, 'end_seconds': 1330,
+                                          'match_evidence': 'Contenido literal del turno de VOX.'}]})
+        return 'Resumen del turno.'
+    monkeypatch.setattr(m.bridge, 'run_once', generate)
     async def ping(): pass
     monkeypatch.setattr(m, 'mcp_ping', ping)
     job = {'id': 'combined', 'conversation_id': 'combined', 'created_at': time.time(), 'artifacts': [], 'events': []}
     asyncio.run(m.execute(job, m.NewJob(video='TV04.mp4', action='chat', message='Dime qué dice VOX, dame un clip y locútalo')))
     assert job['status'] == 'completed'
-    assert [name for name, _ in calls] == ['media_clips', 'media_summarize', 'media_tts']
+    assert [name for name, _ in calls] == ['media_read_transcript', 'media_clips', 'media_read_transcript', 'media_tts']
+    assert calls[2][1]['start_seconds'] == 1194
+    assert calls[2][1]['end_seconds'] == 1330
     assert job['clips'][0]['start_time'] == '00:19:54'

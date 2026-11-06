@@ -227,17 +227,6 @@ def media_search(query: str, top_k: int = 3, video_id: str = "") -> list[dict]:
         else:
             results = (results + ocr_results)[:safe_top_k]
 
-    try:
-        from media_core.services.visual_embeddings import search_visual_index
-        visual_results = search_visual_index(query, top_k=safe_top_k, video_id=video_filter, min_score=0.23)
-        if visual_results:
-            if not results:
-                results = visual_results
-            else:
-                results = (results + visual_results)[:safe_top_k]
-    except Exception:
-        pass
-
     if not results:
         return [
             {

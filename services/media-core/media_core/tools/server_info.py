@@ -27,7 +27,7 @@ def get_server_info() -> dict:
     openrouter_status = (
         "configurada (acceso al proveedor no verificado por esta consulta)"
         if bool(get_openrouter_key())
-        else "no detectada (resúmenes no disponibles)"
+        else "no detectada (generación heredada no disponible; evidencia para Hermes disponible)"
     )
     replicate_status = (
         "configurada (acceso al proveedor no verificado por esta consulta)"
@@ -69,6 +69,7 @@ def get_server_info() -> dict:
             "llm_reasoning": f"{DEFAULT_LLM_MODEL} (OpenRouter - 1º CSV)",
             "speaker_diarization": "pyannote.audio vía WhisperX con token HuggingFace",
             "semantic_search": f"ChromaDB + {EMBEDDING_MODEL}",
+            "multimodal_search": "EmbeddingGemma 2 (CPU, índice progresivo)",
             "tts_synthesis": os.getenv("TTS_PROVIDER", "piper"),
         },
         "api_keys_status": {
@@ -96,6 +97,7 @@ def get_server_info() -> dict:
             "media_summarize",
             "media_clips",
             "media_search",
+            "media_search_multimodal", "media_index_multimodal", "media_multimodal_index_status",
             "media_tts",
             "get_server_info",
         ],

@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 from pathlib import Path
 import threading
@@ -30,6 +31,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(m, 'VISUAL_CACHE', visual_cache)
     monkeypatch.setattr(m, 'OCR_CACHE', ocr_cache)
     monkeypatch.setattr(m, 'KEYFRAMES', keyframes)
+    monkeypatch.setattr(m, 'LEGACY_VIDEOS', tmp_path / 'legacy-videos')
     monkeypatch.setattr(m, 'ROOTS', {'video': videos, 'audio': tmp_path / 'audio', 'clip': tmp_path / 'clips'})
     return videos, cache
 
@@ -63,6 +65,249 @@ def test_cache_fingerprint_is_portable_between_paths(env, tmp_path):
     }))
 
     assert m.catalog()[0]['status'] == 'ready'
+
+
+def test_multimodal_query_file_is_temporary(env, tmp_path, monkeypatch):
+    uploads = tmp_path / 'data/state/search-uploads'
+    monkeypatch.setattr(m, 'QUERY_UPLOADS', uploads)
+    seen = []
+    async def fake_mcp(name, arguments):
+        assert name == 'media_search_multimodal'
+        seen.append(arguments)
+        assert (uploads / arguments['query_media']).read_bytes() == b'query-image'
+        return {'status': 'success', 'coverage_complete': False, 'results': []}
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+    with TestClient(m.app) as client:
+        response = client.post('/api/search/multimodal', data={'q': 'pancarta', 'video_id': 'TV05'},
+                               files={'file': ('sample.png', b'query-image', 'image/png')})
+    assert response.status_code == 200
+    assert seen[0]['video_id'] == 'TV05'
+    assert list(uploads.iterdir()) == []
+
+
+def test_auto_index_makes_transcript_ready_before_multimodal_queue(env, monkeypatch):
+    videos, _ = env
+    source = videos / 'TV88.mp4'
+    source.write_bytes(b'video')
+    monkeypatch.setattr(m, 'indexing_jobs', {})
+    async def fake_mcp(name, arguments):
+        assert name == 'media_transcribe'
+        assert arguments['index_transcript'] is True
+        return {'status': 'success', 'indexed_in_search': True}
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+
+    asyncio.run(m.auto_index_video(source.name, source))
+
+    assert m.indexing_jobs[source.name]['status'] == 'ready'
+    assert m.multimodal_queue_state()[source.name]['status'] == 'queued'
+
+
+def test_multimodal_worker_waits_for_core_and_resumes_checkpoint(env, monkeypatch):
+    videos, _ = env
+    source = videos / 'Tennis.mp4'
+    source.write_bytes(b'video')
+    m.enqueue_multimodal(source.name)
+    m.update_multimodal_queue(source.name, 'queued', 'Reanudando indexación', 45)
+    monkeypatch.setattr(m, 'MULTIMODAL_RETRY_SECONDS', .01)
+    calls = []
+    async def ping():
+        calls.append('ping')
+        if len([call for call in calls if call == 'ping']) == 1:
+            raise RuntimeError('Media Core aún está arrancando')
+        assert m.multimodal_queue_state()[source.name]['progress_percent'] == 45
+    async def call(name, arguments):
+        calls.append(name)
+        if name == 'media_index_visual':
+            return {'status': 'success'}
+        assert name == 'media_index_multimodal'
+        assert arguments['retry_failed'] is True
+        return {'status': 'completed', 'progress_percent': 100}
+    monkeypatch.setattr(m, 'mcp_ping', ping)
+    monkeypatch.setattr(m, 'mcp_call', call)
+
+    async def run():
+        worker = asyncio.create_task(m.multimodal_index_worker())
+        try:
+            for _ in range(100):
+                if m.multimodal_queue_state()[source.name]['status'] == 'completed':
+                    return
+                await asyncio.sleep(.01)
+            pytest.fail('La indexación no se reanudó')
+        finally:
+            worker.cancel()
+            await asyncio.gather(worker, return_exceptions=True)
+
+    asyncio.run(run())
+
+    assert calls[:3] == ['ping', 'ping', 'media_index_visual']
+    assert m.multimodal_queue_state()[source.name]['progress_percent'] == 100
+
+
+def test_multimodal_search_accepts_catalog_ids_with_spaces_and_dots(env, monkeypatch):
+    seen = []
+    async def fake_mcp(name, arguments):
+        seen.append(arguments['video_id'])
+        return {'status': 'no_results', 'coverage_complete': False, 'results': []}
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+    with TestClient(m.app) as client:
+        response = client.post('/api/search/multimodal', data={
+            'q': 'pancarta', 'video_id': 'MI VIDEO.2026'})
+    assert response.status_code == 200
+    assert seen == ['MI VIDEO.2026']
+
+
+def test_chat_attachment_searches_then_gives_candidates_to_hermes(env, tmp_path, monkeypatch):
+    uploads = tmp_path / 'data/state/search-uploads'
+    monkeypatch.setattr(m, 'QUERY_UPLOADS', uploads)
+    monkeypatch.setattr(m, 'catalog', lambda: [{'id': 'TV88', 'url': '/api/files/video/TV88.mp4'}])
+    seen = {}
+    async def fake_mcp(name, arguments):
+        assert name == 'media_search_multimodal'
+        assert arguments['video_id'] == 'TV88'
+        assert arguments['query'] == ''
+        seen['file'] = arguments['query_media']
+        assert (uploads / seen['file']).read_bytes() == b'image-reference'
+        return {'status': 'success', 'coverage_complete': False, 'warnings': [], 'results': [
+            {'video_id': 'TV88', 'start_seconds': 12, 'end_seconds': 20,
+             'modality': 'image', 'key_excerpt': 'Candidato visual'}]}
+    def fake_run(_conversation, message, *_args, **options):
+        seen['prompt'] = message
+        seen['image'] = _args[-1]
+        return 'He comprobado el tramo indicado.'
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+    monkeypatch.setattr(m.bridge, 'run', fake_run)
+
+    preview = 'data:image/jpeg;base64,' + base64.b64encode(b'\xff\xd8\xffpreview\xff\xd9').decode('ascii')
+    with TestClient(m.app) as client:
+        created = client.post('/api/chat/jobs/with-media',
+            data={'payload': json.dumps({'message': 'Busca esto en TV88', 'conversation_id': 'chat-media'}),
+                  'preview': preview},
+            files={'file': ('referencia.png', b'image-reference', 'image/png')})
+        assert created.status_code == 202
+        assert created.json()['attachment'] == {'name': 'referencia.png', 'kind': 'image', 'preview': preview}
+        job_id = created.json()['id']
+        for _ in range(100):
+            result = client.get(f'/api/chat/jobs/{job_id}').json()
+            if result['status'] in {'completed', 'failed'}:
+                break
+            time.sleep(0.02)
+        assert result['status'] == 'completed', result.get('error')
+        assert 'Candidato visual' in seen['prompt']
+        assert seen['image'] == preview
+        assert 'No uses terminal' in seen['prompt']
+        assert '/api/files/video/TV88.mp4#t=12' in seen['prompt']
+        assert 'Cobertura multimodal completa: False' in seen['prompt']
+    assert not (uploads / seen['file']).exists()
+
+
+def test_exact_reference_match_gives_hermes_verified_moment(env, monkeypatch):
+    monkeypatch.setattr(m, 'catalog', lambda: [{'id': 'APUNT', 'url': '/api/files/video/APUNT.mp4'}])
+    seen = {}
+
+    async def fake_mcp(name, arguments):
+        assert name == 'media_search_multimodal'
+        assert arguments['query'] == ''
+        return {'status': 'success', 'exact_visual_match': True, 'coverage_complete': True,
+                'warnings': [], 'results': [{
+                    'video_id': 'APUNT', 'start_seconds': 26.0, 'end_seconds': 28.0,
+                    'modality': 'image', 'evidence_status': 'verified_visual_match',
+                    'visual_inliers': 393, 'key_excerpt': 'Coincidencia geométrica',
+                }]}
+
+    def fake_run(conversation, message, history, on_event, effort=None, image=None, **options):
+        seen['message'] = message
+        seen['image'] = image
+        return 'Sí, aparece alrededor de 00:26.'
+
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+    monkeypatch.setattr(m.bridge, 'run', fake_run)
+    preview = 'data:image/jpeg;base64,/9j/2Q=='
+    job = {'id': 'exact-match', 'kind': 'hermes_chat', 'conversation_id': 'exact-test',
+           'message': '¿Aparece algo así en APUNT?', 'status': 'queued', 'stage': 'En cola',
+           'created_at': time.time(), 'events': [], 'answer': '', 'artifacts': [],
+           'attachment': {'kind': 'image', 'name': 'referencia.jpg', 'preview': preview},
+           'query_media': 'reference.jpg'}
+
+    asyncio.run(m.execute_chat(job, m.ChatRequest(
+        message=job['message'], conversation_id='exact-test',
+    )))
+
+    assert job['status'] == 'completed'
+    assert 'moment_url' in seen['message']
+    assert '/api/files/video/APUNT.mp4#t=26' in seen['message']
+    assert 'no hacen falta otras herramientas' in seen['message']
+    assert seen['image'] == preview
+
+
+def test_text_chat_prefetches_indexed_video_before_hermes(env, monkeypatch):
+    monkeypatch.setattr(m, 'catalog', lambda: [{'id': 'APUNT', 'url': '/api/files/video/APUNT.mp4'}])
+    calls = []
+    async def fake_mcp(name, arguments):
+        calls.append(('mcp', name))
+        if name == 'media_multimodal_index_status':
+            return {'status': 'completed', 'completed_items': 3}
+        assert name == 'media_search_multimodal'
+        assert arguments == {'query': 'Búscame un teléfono en APUNT y dame el fotograma',
+                             'video_id': 'APUNT', 'top_k': 6}
+        return {'status': 'success', 'retrieval_strategy': 'multimodal_first',
+                'coverage_complete': True, 'results': [{
+                    'video_id': 'APUNT', 'start_seconds': 40, 'end_seconds': 48,
+                    'modality': 'image', 'semantic_score': .61,
+                    'search_engine': 'embeddinggemma_2',
+                    'evidence_status': 'semantic_candidate'}]}
+    def fake_run(_conversation, prompt, *_, **options):
+        calls.append(('hermes', prompt))
+        return 'Fotograma localizado.'
+    monkeypatch.setattr(m, 'mcp_call', fake_mcp)
+    monkeypatch.setattr(m.bridge, 'run', fake_run)
+    job = {'id': 'first-multimodal', 'kind': 'hermes_chat',
+           'conversation_id': 'first-multimodal',
+           'message': 'Búscame un teléfono en APUNT y dame el fotograma',
+           'status': 'queued', 'stage': 'En cola', 'created_at': time.time(),
+           'events': [], 'answer': '', 'artifacts': []}
+
+    asyncio.run(m.execute_chat(job, m.ChatRequest(
+        message=job['message'], conversation_id=job['conversation_id'])))
+
+    assert job['status'] == 'completed'
+    assert [call[0] for call in calls] == ['mcp', 'mcp', 'hermes']
+    assert 'Estrategia usada: multimodal_first' in calls[2][1]
+    assert '/api/files/video/APUNT.mp4#t=40' in calls[2][1]
+    assert 'Cobertura completa del índice' in calls[2][1]
+
+
+def test_text_chat_keeps_hermes_when_multimodal_search_fails(env, monkeypatch):
+    monkeypatch.setattr(m, 'catalog', lambda: [{'id': 'APUNT', 'url': '/api/files/video/APUNT.mp4'}])
+    prompts = []
+    async def unavailable(*_):
+        raise RuntimeError('Índice temporalmente no disponible')
+    monkeypatch.setattr(m, 'mcp_call', unavailable)
+    monkeypatch.setattr(m.bridge, 'run', lambda _conversation, prompt, *_, **options: prompts.append(prompt) or 'Hecho')
+    job = {'id': 'fallback-multimodal', 'kind': 'hermes_chat',
+           'conversation_id': 'fallback-multimodal',
+           'message': 'Encuentra un teléfono en APUNT',
+           'status': 'queued', 'stage': 'En cola', 'created_at': time.time(),
+           'events': [], 'answer': '', 'artifacts': []}
+
+    asyncio.run(m.execute_chat(job, m.ChatRequest(
+        message=job['message'], conversation_id=job['conversation_id'])))
+
+    assert job['status'] == 'completed'
+    assert 'Estrategia usada: unavailable' in prompts[0]
+    assert 'media_search_visual o media_search textual' in prompts[0]
+
+
+def test_chat_search_video_reuses_scope_only_for_content_followups():
+    videos = [{'id': 'APUNT'}, {'id': 'TV05'}]
+    history = [{'role': 'user', 'content': 'Encuentra un teléfono en APUNT'},
+               {'role': 'assistant', 'content': 'Aparece a los 40 segundos.'}]
+    assert m.chat_search_video('¿Y aparece en otro momento?', history, videos) == 'APUNT'
+    assert m.chat_search_video('¿Has usado los índices multimodales?', history, videos) == ''
+    assert m.chat_search_video('Busca un teléfono en TV05', history, videos) == 'TV05'
+    assert m.chat_search_video('¿Qué pasa en el minuto 1:20 de APUNT?', history, videos) == ''
+    assert m.chat_search_video(
+        'Usa media_search_multimodal. Petición del usuario: Busca un teléfono en APUNT',
+        history, videos) == 'APUNT'
 
 
 def test_range_and_path_boundary(env):
@@ -308,10 +553,11 @@ def test_partial_summary_is_kept_when_tts_fails(env, monkeypatch):
     calls = []
     async def call(name, args):
         calls.append((name, args))
-        if name == 'media_summarize':
-            return {'status': 'success', 'executive_summary': 'Synthetic summary.'}
+        if name == 'media_read_transcript':
+            return {'status': 'success', 'text': 'Original source.', 'next_offset': None, 'source_revision': 'one'}
         return {'status': 'error', 'message': 'Synthetic TTS failure'}
     monkeypatch.setattr(m, 'mcp_call', call)
+    monkeypatch.setattr(m.bridge, 'run_once', lambda *a: 'Synthetic summary.')
     req = m.NewJob(video='TV04.mp4', action='audio', language='ca')
     job = {'id': 'test', 'created_at': 1, 'conversation_id': 'test', 'artifacts': [], 'events': []}
     asyncio.run(m.execute(job, req))
@@ -415,6 +661,7 @@ def test_transcript_does_not_return_wrong_video_from_cache(env):
         assert client.get('/api/transcript/TV04.mp4').json()['text'] == 'CORRECT'
 
 def test_clip_selection_evidence_is_kept_for_frontend(env, monkeypatch):
+    monkeypatch.setenv('MEDIA_GENERATION_BACKEND', 'core')
     videos, _ = env
     (videos / 'TV04.mp4').write_bytes(b'video')
     target = m.ROOTS['clip']
@@ -440,13 +687,16 @@ def test_clip_selection_evidence_is_kept_for_frontend(env, monkeypatch):
 
 def test_global_chat_keeps_conversation_history(env, monkeypatch):
     calls = []
+    restored = []
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         calls.append((conversation, text, history))
         on_event('message.complete', {'text': f'Respuesta a: {text}'})
         return f'Respuesta a: {text}'
 
     monkeypatch.setattr(m.bridge, 'run', run)
+    monkeypatch.setattr(m.bridge, 'remember_session',
+                        lambda conversation, stored, mode: restored.append((conversation, stored, mode)))
 
     first = {
         'id': 'chat-one', 'kind': 'hermes_chat', 'conversation_id': 'conversation-one',
@@ -456,6 +706,9 @@ def test_global_chat_keeps_conversation_history(env, monkeypatch):
     asyncio.run(m.execute_chat(first, m.ChatRequest(
         message='Primera pregunta', conversation_id='conversation-one'
     )))
+    first['hermes_session_id'] = 'stored-original'
+    first['hermes_mode'] = 'local'
+    m.save(first)
     second = {
         'id': 'chat-two', 'kind': 'hermes_chat', 'conversation_id': 'conversation-one',
         'message': 'Segunda pregunta', 'status': 'queued', 'stage': 'En cola',
@@ -471,10 +724,11 @@ def test_global_chat_keeps_conversation_history(env, monkeypatch):
         {'role': 'user', 'content': 'Primera pregunta'},
         {'role': 'assistant', 'content': 'Respuesta a: Primera pregunta'},
     ]
+    assert restored == [('conversation-one', 'stored-original', 'local')]
 
 
 def test_global_chat_endpoints_are_separate_from_video_jobs(env, monkeypatch):
-    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event: 'Hecho')
+    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event, **options: 'Hecho')
 
     with TestClient(m.app) as client:
         response = client.post('/api/chat/jobs', json={'message': 'Revisa el proyecto'})
@@ -498,7 +752,7 @@ def test_global_chat_endpoints_are_separate_from_video_jobs(env, monkeypatch):
 def test_delete_chat_removes_hermes_session_and_media_messages(env, monkeypatch):
     deleted_sessions = []
     session_deleted = threading.Event()
-    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event: 'Hecho')
+    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event, **options: 'Hecho')
 
     def delete_session(conversation, *args):
         deleted_sessions.append(conversation)
@@ -577,7 +831,7 @@ def test_delete_chat_force_cancels_active_turn_and_prevents_late_resurrection(en
     cleaned = threading.Event()
     calls = []
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         started.set()
         released.wait(timeout=5)
         return 'Respuesta que llegó después del borrado'
@@ -694,10 +948,15 @@ def test_cancel_chat_job_propagates_remote_media_core_cancel(env, monkeypatch):
     monkeypatch.setattr(m, 'chat_tasks', {job['id']: ActiveTask()})
     monkeypatch.setattr(m, 'mcp_call', media_core)
     monkeypatch.setattr(m.bridge, 'interrupt', lambda conversation: True)
+    monkeypatch.setattr(m.bridge, 'session_identity', lambda conversation: {
+        'session_id': 'live-original', 'stored_session_id': 'stored-original', 'mode': 'local',
+    })
 
     response = asyncio.run(m.cancel_chat_job(job['id']))
 
     assert response['status'] == 'cancelled'
+    assert response['hermes_session_id'] == 'stored-original'
+    assert m.get_job(job['id'])['hermes_session_id'] == 'stored-original'
     assert calls == [
         ('media_job_cancel', {'job_id': 'remote-cancel'}),
         ('local_task_cancel', {}),
@@ -710,7 +969,7 @@ def test_delete_active_local_chat_captures_stored_session_before_interrupt(env, 
     deleted = []
     session_deleted = threading.Event()
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         started.set()
         released.wait(timeout=5)
         return 'Respuesta tardía'
@@ -852,7 +1111,7 @@ def test_docker_effective_session_is_persisted_in_job_and_cleanup_outbox(env, mo
         'created_at': time.time(), 'events': [], 'answer': '', 'artifacts': [],
     }
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         m.bridge.sessions[conversation] = 'docker-effective-session'
         m.bridge.session_modes[conversation] = 'docker'
         return 'Hecho'
@@ -974,7 +1233,7 @@ def test_global_chat_can_cancel_a_running_turn(env, monkeypatch):
     started = threading.Event()
     stopped = threading.Event()
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         started.set()
         stopped.wait(timeout=5)
         return 'Respuesta tardía'
@@ -1001,7 +1260,7 @@ def test_global_chat_publishes_keyframe_from_visual_tool(env, monkeypatch):
     keyframes.mkdir()
     (keyframes / 'frame_0001.jpg').write_bytes(b'frame')
 
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         on_event('tool.complete', {'name': 'media_describe_scene', 'result': {
             'status': 'success', 'keyframe_path': 'keyframes/TV04/frame_0001.jpg',
         }})
@@ -1025,7 +1284,7 @@ def test_global_chat_publishes_keyframe_from_visual_tool(env, monkeypatch):
 
 
 def test_global_chat_publishes_sanitized_live_activity(env, monkeypatch):
-    def run(conversation, text, history, on_event):
+    def run(conversation, text, history, on_event, **options):
         on_event('tool.start', {
             'name': 'skill_view', 'label': 'media-video-archive',
             'arguments': {'name': 'media-video-archive', 'secret': 'hidden'},
@@ -1057,7 +1316,13 @@ def test_image_follow_up_directs_hermes_to_video_tool(env, monkeypatch):
     }
     m.save(previous)
     sent = []
-    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event: sent.append(text) or 'Aquí está.')
+    async def candidates(name, arguments):
+        assert name == 'media_search_multimodal'
+        assert arguments['video_id'] == 'TV04'
+        return {'status': 'no_results', 'retrieval_strategy': 'fallback',
+                'coverage_complete': False, 'results': []}
+    monkeypatch.setattr(m, 'mcp_call', candidates)
+    monkeypatch.setattr(m.bridge, 'run', lambda conversation, text, history, on_event, **options: sent.append(text) or 'Aquí está.')
     job = {
         'id': 'follow-up-image', 'kind': 'hermes_chat', 'conversation_id': 'conversation-image',
         'message': 'dame la imagen', 'status': 'queued', 'stage': 'En cola',
@@ -1069,7 +1334,7 @@ def test_image_follow_up_directs_hermes_to_video_tool(env, monkeypatch):
 
     assert job['status'] == 'completed'
     assert 'TV04' in sent[0]
-    assert 'media_describe_scene' in sent[0]
+    assert 'media_scene_context' in sent[0]
     assert 'no uses search_files' in sent[0].lower()
 
 
@@ -1124,11 +1389,17 @@ def test_visual_search_and_describe_endpoints(env, monkeypatch):
     async def mock_mcp(name, arguments):
         if name == 'media_search_visual':
             return [{'video_id': 'TV05', 'matched_terms': [arguments['query']]}]
-        if name == 'media_describe_scene':
-            return {'status': 'success', 'description': 'Plano medio de presentadora'}
+        if name == 'media_scene_context':
+            return {'status': 'success', 'timestamp': 10, 'evidence_frames': [{'timestamp': 10, 'path': str(m.ROOT / 'frame.jpg')}]}
         return {}
 
     monkeypatch.setattr(m, 'mcp_call', mock_mcp)
+
+    def describe(conversation, prompt, callback):
+        callback('tool.complete', {'name': 'vision_analyze', 'result': {'analysis': 'Plano medio de presentadora'}})
+        return '{"description":"Plano medio de presentadora"}'
+    monkeypatch.setattr(m.bridge, 'run_once', describe)
+    monkeypatch.setattr(m.bridge, 'delete_session', lambda *a: {})
 
     with TestClient(m.app) as client:
         res = client.get('/api/visual/search?q=gasolinera')

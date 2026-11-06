@@ -57,7 +57,7 @@ def _validate_clip_candidates(
         try:
             start = seconds(clip.get("start_seconds") if clip.get("start_seconds") is not None else clip["start_time"])
             end = seconds(clip.get("end_seconds") if clip.get("end_seconds") is not None else clip["end_time"])
-            if end <= start or start < 0:
+            if not math.isfinite(start) or not math.isfinite(end) or end <= start or start < 0:
                 continue
             if source_segments:
                 last = max(seconds(segment.get("end_seconds", segment.get("end", 0))) for segment in source_segments)
@@ -151,6 +151,7 @@ def media_clips(
     turn_indices: list[int] | None = None,
     start_seconds: float | None = None,
     end_seconds: float | None = None,
+    candidates: list[dict] | None = None,
 ) -> list[dict]:
     """Recorta turnos completos de una persona por índice o selecciona clips temáticos.
 
@@ -165,6 +166,7 @@ def media_clips(
 
     auto intenta primero evidencia textual y usa el selector editorial solo si no la encuentra.
     fast nunca usa OpenRouter; editorial consulta el LLM salvo para turnos de persona ya verificados.
+    Hermes debe seleccionar desde media_read_transcript y pasar candidates para evitar el LLM editorial.
     Envía los segmentos con timestamps a Gemma 4 en OpenRouter para calcular los puntos de corte, titulares,
     ganchos y justificación. Si el vídeo existe en disco, recorta físicamente los clips a MP4 en data/outputs/clips/.
 
@@ -182,11 +184,16 @@ def media_clips(
         turn_indices: Números concretos de intervenciones; permite, por ejemplo, [2, 4, 7].
         start_seconds: Inicio explícito de un corte, en segundos del vídeo.
         end_seconds: Fin explícito del corte. Debe acompañar a start_seconds.
+        candidates: Selección de Hermes (1..10 objetos con start_seconds, end_seconds,
+            title y match_evidence literal). Se valida toda la lista antes de cortar,
+            sin llamar a OpenRouter. No combinar con tiempos explícitos o persona.
     """
     if not 1 <= max_clips <= 10 or selection_mode not in {"auto", "fast", "editorial"}:
         return [{"status": "error", "message": "max_clips debe ser 1..10; selection_mode auto, fast o editorial."}]
     exact_time_requested = start_seconds is not None or end_seconds is not None
     turns_requested = bool(person.strip()) or turn_index is not None or turn_indices is not None
+    if candidates is not None and (exact_time_requested or turns_requested):
+        return [{"status": "error", "message": "No combines candidates con tiempos o turnos."}]
     if (exact_time_requested and turns_requested) or ((exact_time_requested or turns_requested) and (query or topic).strip()):
         return [{"status": "error", "message": "Elige una sola forma de selección: tiempos, persona/turnos o consulta textual."}]
     if exact_time_requested and (start_seconds is None or end_seconds is None):
@@ -236,6 +243,25 @@ def media_clips(
         if not video_file or (str(test_vector.get("id", "")).upper() == clean_id
                               and source_matches_file(source_identity, video_file)):
             source_segments = test_vector["segments"]
+
+    if candidates is not None:
+        if not source_segments or not 1 <= len(candidates) <= min(max_clips, 10):
+            return [{"status": "error", "message": "Se requieren segmentos válidos y entre 1 y max_clips candidatos."}]
+        proposed = []
+        for number, item in enumerate(candidates, 1):
+            if not isinstance(item, dict):
+                return [{"status": "error", "message": "Candidato de clip inválido."}]
+            proposed.append({key: item[key] for key in (
+                "start_seconds", "end_seconds", "title", "match_evidence", "justification"
+            ) if key in item})
+            proposed[-1].update(clip_number=number, video_id=clean_id, model_generated_by="hermes")
+        validated = _validate_clip_candidates(proposed, source_segments, search_topic or "agent_selection", "source_verified")
+        if len(validated) != len(proposed):
+            return [{"status": "error", "message": "Selección de Hermes inválida: tiempos o cita literal sin evidencia en el intervalo. No se ha cortado ningún archivo."}]
+        for clip in validated:
+            clip.update(status="success", selection_mode="agent", cut_precision="reencoded",
+                        start_time=format_seconds(clip["start_seconds"]), end_time=format_seconds(clip["end_seconds"]))
+        return _cut_selected_clips(validated, video_file, clean_id, cut_video_files, precise=True)
 
     if exact_time_requested:
         try:
@@ -378,7 +404,7 @@ def media_clips(
         or (selection_mode == "auto" and not focused_candidate)
         or not search_topic
     )
-    if get_openrouter_key() and segments_context and use_editorial_selector and not (
+    if selection_mode != "fast" and get_openrouter_key() and segments_context and use_editorial_selector and not (
         focused_candidate and selection and selection["method"] == "speaker_turn"
     ):
         if search_topic:

@@ -14,6 +14,7 @@ type Video = {
   indexing_stage?: string;
   indexed: boolean;
   visual_indexed?: boolean;
+  multimodal?: { status: string; stage?: string; progress_percent?: number; error?: string };
   url: string;
   thumbnail: string;
 };
@@ -51,7 +52,7 @@ export default function Home() {
   const [uploadedMeta, setUploadedMeta] = useState<{ name: string; sizeMb: number } | null>(null);
   const [autoIndexingVideo, setAutoIndexingVideo] = useState<string | null>(null);
   const upload = useRef<HTMLInputElement>(null);
-  const anyIndexing = videos.some(v => v.status === 'indexing');
+  const anyIndexing = videos.some(v => v.status === 'indexing' || ['queued', 'running'].includes(v.multimodal?.status || ''));
   async function refresh() {
     const v = await api<Video[]>('/videos'); setVideos(v);
     return v;
@@ -146,6 +147,13 @@ export default function Home() {
       setError((e as Error).message);
     }
   }
+  async function startMultimodalIndex(filename: string) {
+    try {
+      setError('');
+      await api(`/videos/${encodeURIComponent(filename)}/multimodal-index`, { method: 'POST' });
+      await refresh();
+    } catch (cause) { setError((cause as Error).message); }
+  }
   async function uploadFile(file?: File) {
     if (!file) return;
     setUploading(true); setUploadProgress(0); setError('');
@@ -229,7 +237,7 @@ export default function Home() {
               </span>
             </div>
             <p>
-              Vídeos disponibles en la carpeta <code>test_vectors/videos</code>. Al subir un vídeo se guarda directamente en esta carpeta y se indexa automáticamente (audio WhisperX + vectores CLIP de fotogramas).
+              Al subir un vídeo, la transcripción queda disponible primero. La búsqueda por imagen, audio y vídeo se prepara después en segundo plano.
             </p>
           </div>
           <button className="primary upload-cta-btn" disabled={uploading} onClick={() => upload.current?.click()}>
@@ -330,6 +338,7 @@ export default function Home() {
           <div className="video-grid">
             {visible.map(v => {
               const isIndexing = v.status === 'indexing' || autoIndexingVideo === v.filename;
+              const isMultimodalRunning = v.multimodal?.status === 'running';
               return (
                 <div key={v.filename} className={`video-card-container ${isIndexing ? 'is-indexing' : ''}`}>
                   <button className="video-card" onClick={() => choose(v)}>
@@ -354,7 +363,7 @@ export default function Home() {
                         <h3 title={v.title}>{v.title}</h3>
                         <span className={`status-pill ${v.status === 'ready' ? 'ready' : isIndexing ? 'indexing' : 'unverified'}`}>
                           {v.status === 'ready' ? (
-                            <><Check size={11} /> Listo</>
+                            <><Check size={11} /> Buscable por texto</>
                           ) : isIndexing ? (
                             <><LoaderCircle className="spin" size={11} /> Indexando…</>
                           ) : (
@@ -369,13 +378,16 @@ export default function Home() {
                       {isIndexing && v.indexing_stage && (
                         <p className="indexing-stage-text">{v.indexing_stage}</p>
                       )}
+                      {v.multimodal?.status === 'queued' && <p className="indexing-stage-text">Búsqueda multimodal en cola</p>}
+                      {v.status === 'ready' && v.multimodal?.status === 'running' && <p className="indexing-stage-text">Búsqueda multimodal en preparación: {v.multimodal.progress_percent || 0} %</p>}
+                      {v.status === 'ready' && v.multimodal?.status === 'completed' && <p className="indexing-stage-text">Búsqueda por imagen, audio y vídeo disponible</p>}
                     </div>
                   </button>
                   <div className="video-card-bottom-bar">
                     <button
                       className="delete-video-button"
-                      title={isIndexing ? 'Espera a que termine la indexación' : `Eliminar ${v.title}`}
-                      disabled={isIndexing || deleting}
+                      title={isIndexing || isMultimodalRunning ? 'Espera a que termine la indexación' : `Eliminar ${v.title}`}
+                      disabled={isIndexing || isMultimodalRunning || deleting}
                       onClick={() => { setError(''); setDeleteTarget(v); }}
                     >
                       <Trash2 size={13} /> Quitar vídeo
@@ -388,6 +400,9 @@ export default function Home() {
                       >
                         <Sparkles size={13} /> Indexar vídeo
                       </button>
+                    )}
+                    {v.status === 'ready' && !['queued', 'running', 'completed'].includes(v.multimodal?.status || '') && (
+                      <button className="quick-index-button" onClick={() => startMultimodalIndex(v.filename)}><Sparkles size={13}/>Preparar búsqueda multimodal</button>
                     )}
                   </div>
                 </div>
@@ -405,7 +420,7 @@ export default function Home() {
           <Film size={19} />
           <p>
             Almacenamiento directo en <code>data/test-vectors/videos</code>.
-            <span>Los vídeos se indexan semánticamente con WhisperX y visualmente con CLIP para búsquedas instantáneas y extracción de clips.</span>
+            <span>La transcripción se puede consultar mientras el índice multimodal continúa en segundo plano.</span>
           </p>
         </div>
         </>}

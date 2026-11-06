@@ -2,6 +2,7 @@
 
 import re
 import unicodedata
+from .chat_requests import user_request_text
 
 
 _NUMBERS = {
@@ -31,13 +32,14 @@ def _person(text: str) -> str:
 
 def parse_turn_clip_request(message: str, history: list[dict]) -> dict | None:
     """Return an unambiguous person/video/turn selection, or defer to Hermes."""
+    message = user_request_text(message)
     plain = _plain(message)
     if not re.search(r'\b(?:clips?|cortes?|corta|cortar|recorta|recortar)\b', plain):
         return None
     if not re.search(r'\b(?:intervencion(?:es)?|turnos?|numero)\b', plain):
         return None
 
-    previous = [item.get('content', '') for item in reversed(history)
+    previous = [user_request_text(item.get('content', '')) for item in reversed(history)
                 if item.get('role') == 'user']
     current_video = re.findall(r'\bTV\d{2,}\b', message, re.IGNORECASE)
     video_id = current_video[-1].upper() if current_video else ''

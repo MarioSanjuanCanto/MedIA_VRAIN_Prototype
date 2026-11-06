@@ -67,7 +67,6 @@ def index_keyframes_visual(
     """
     clean_id = video_id.strip().upper()
     collection = get_visual_collection(client)
-    embedder = model or get_visual_embedding_model()
 
     frames = visual_manifest.get("frames", [])
     # Filter to representative / non-duplicate frames
@@ -93,6 +92,7 @@ def index_keyframes_visual(
         except Exception:
             pass
 
+    embedder = model or get_visual_embedding_model()
     total_indexed = 0
     with stage("visual_indexing"):
         progress("indexing_keyframes", video_id=clean_id, total=len(target_frames))
@@ -174,6 +174,8 @@ def search_visual_index(
         return []
 
     collection = get_visual_collection(client)
+    if collection.count() == 0:
+        return []
     embedder = model or get_visual_embedding_model()
 
     # Encode textual query into multimodal vector space

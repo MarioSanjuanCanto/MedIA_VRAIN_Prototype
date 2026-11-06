@@ -1,7 +1,8 @@
 # MedIA
 
 Prototipo audiovisual con biblioteca de vídeos, chat con Hermes Agent y herramientas
-MCP para transcripción, búsqueda, OCR, análisis visual, resúmenes, clips y voz.
+MCP para transcripción, búsqueda por texto, imagen, audio y vídeo, OCR, análisis
+visual, resúmenes, clips, doblaje, subtítulos y voz.
 
 Este README explica **cómo preparar un clon desde cero y comprobar que funciona**.
 El recorrido principal ejecuta los servicios en el mismo ordenador, utiliza
@@ -15,11 +16,14 @@ No requiere una GPU local.
 3. [Clonar e instalar dependencias](#3-clonar-e-instalar-dependencias)
 4. [Cuentas, claves y configuración](#4-cuentas-claves-y-configuración)
 5. [Modelos utilizados y preparación](#5-modelos-utilizados-y-preparación)
+   - [EmbeddingGemma 2 e índice multimodal](#58-embeddinggemma-2-e-índice-multimodal)
 6. [Instalar y configurar Hermes](#6-instalar-y-configurar-hermes)
 7. [Arrancar Core y conectar el MCP](#7-arrancar-core-y-conectar-el-mcp)
 8. [Arrancar API y frontend](#8-arrancar-api-y-frontend)
 9. [Añadir vídeos y probar la aplicación](#9-añadir-vídeos-y-probar-la-aplicación)
-10. [Avatar, micrófono y Piper](#10-avatar-micrófono-y-piper)
+   - [Buscar por texto, imagen, audio o vídeo](#94-buscar-por-texto-imagen-audio-o-vídeo)
+   - [Doblar y subtitular un vídeo o clip](#95-doblar-y-subtitular-un-vídeo-o-clip)
+10. [Avatar, dictado y grabación de referencia](#10-avatar-dictado-y-grabación-de-referencia)
 11. [Uso diario y actualizaciones](#11-uso-diario-y-actualizaciones)
 12. [Resolución de problemas](#12-resolución-de-problemas)
 13. [Pruebas de desarrollo](#13-pruebas-de-desarrollo)
@@ -44,16 +48,18 @@ Media API (FastAPI, 8010)
     v                              v
 Media Core (8001/mcp) <----------- Hermes Agent
     |                                |
-    |                                +--> OpenRouter: modelo del agente
-    +--> OpenRouter: texto y visión
+    |                                +--> OpenRouter: modelo del agente y visión compatible
+    +--> OpenRouter: traducción y rutas de generación del Core
     +--> Replicate: WhisperX / Qwen TTS opcional
-    +--> Local: Piper, Whisper de micrófono, OCR, embeddings y FFmpeg
+    +--> Local: MiniLM, CLIP, EmbeddingGemma 2, OCR, Piper, Whisper y FFmpeg
 ```
 
 - **Media Web:** biblioteca, chat, archivos generados, avatar y panel de uso.
-- **Media API:** subidas, trabajos, historial y conexión con Core/Hermes.
-- **Media Core:** servidor MCP y ejecución multimedia; mantiene los índices.
-  Utiliza transporte **Streamable HTTP**.
+- **Media API:** subidas, trabajos, historial, cola de indexación multimodal y
+  conexión con Core/Hermes.
+- **Media Core:** servidor MCP con transporte **Streamable HTTP**. Mantiene
+  los índices y ejecuta el procesamiento multimedia, incluidos cortes, doblaje
+  y subtítulos.
 - **Hermes:** interpreta la petición y utiliza las herramientas MCP. Su modelo
   y sus credenciales se configuran en su propio perfil.
 
@@ -220,7 +226,7 @@ en el apartado 5. Hermes tiene un entorno independiente, descrito en el 6.
 
 | Credencial | Obtener en | Función |
 | --- | --- | --- |
-| `OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/keys) | Modelo de Hermes y generación de texto/visión del Core |
+| `OPENROUTER_API_KEY` | [OpenRouter](https://openrouter.ai/keys) | Modelo de Hermes, traducción de doblaje y subtítulos, y rutas de texto/visión del Core |
 | `REPLICATE_API_KEY` | [Replicate](https://replicate.com/account/api-tokens) | WhisperX para vídeos nuevos y Qwen TTS opcional |
 | `HUGGINGFACE_ACCESS_TOKEN` o `HF_TOKEN` | [Hugging Face](https://huggingface.co/settings/tokens) | Acceso a pesos protegidos de diarización en WhisperX |
 | `FAL_ADMIN_KEY` | Cuenta FAL del equipo, si se utiliza | Consultar gasto FAL; opcional para el flujo básico |
@@ -273,6 +279,8 @@ HUGGINGFACE_ACCESS_TOKEN=<TU_TOKEN_SI_USAS_DIARIZACION>
 EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 CHROMA_COLLECTION=media_transcripts_v1
 CHROMA_AUTO_INDEX=false
+MULTIMODAL_MODEL=google/embeddinggemma-2
+MULTIMODAL_CPU_THREADS=2
 TTS_PROVIDER=piper
 PIPER_VOICE_ES=es_ES-carlfm-x_low
 PIPER_THREADS=2
@@ -293,6 +301,10 @@ utiliza el del servicio y evita valores contradictorios. Las variables
 exportadas en la terminal pueden influir en la configuración. Reinicia Core
 cuando cambies modelos, claves o rutas.
 
+Si Core no encuentra FFmpeg o FFprobe, puedes indicar la carpeta que contiene
+ambos binarios con `MEDIA_FFMPEG_DIR`. Mantén FFmpeg y FFprobe también en el
+`PATH` de la API para validar subidas y convertir referencias de audio.
+
 ### 4.4. API: `services/media-api/.env`
 
 Configura rutas **absolutas** al clon y su entorno de Hermes. En Windows, por
@@ -300,6 +312,7 @@ ejemplo si has clonado en `C:\MedIA`:
 
 ```dotenv
 HERMES_MODE=local
+MEDIA_GENERATION_BACKEND=hermes
 HERMES_AGENT_DIR=C:/MedIA/docker/hermes-agent
 HERMES_PYTHON=C:/MedIA/docker/hermes-agent/.venv/Scripts/python.exe
 HERMES_HOME=C:/MedIA/data/state/hermes
@@ -311,6 +324,7 @@ En macOS/Linux, por ejemplo para `/home/usuario/MedIA`:
 
 ```dotenv
 HERMES_MODE=local
+MEDIA_GENERATION_BACKEND=hermes
 HERMES_AGENT_DIR=/home/usuario/MedIA/docker/hermes-agent
 HERMES_PYTHON=/home/usuario/MedIA/docker/hermes-agent/.venv/bin/python
 HERMES_HOME=/home/usuario/MedIA/data/state/hermes
@@ -325,6 +339,13 @@ barras `/` para evitar escapes ambiguos.
 En modo `local` no se necesitan `HERMES_API_URL`, `HERMES_API_KEY` ni
 `HERMES_DOCKER_WORKDIR`. El valor `auto` de la plantilla intenta HTTP y después
 local; aquí se selecciona `local` para que el arranque sea predecible.
+
+Con `MEDIA_GENERATION_BACKEND=hermes` (predeterminado), Hermes redacta
+resúmenes a partir de la transcripción paginada, propone clips que Core valida
+antes de cortar y describe escenas a partir del contexto visual preparado por
+Core. La visión puede usar un modelo auxiliar si el principal no admite
+imágenes. `MEDIA_GENERATION_BACKEND=core` recupera las rutas anteriores de los
+botones de generación y del endpoint visual.
 
 Para su panel de gasto, API local puede reutilizar las claves de
 `services/media-core/.env`. Añade `FAL_ADMIN_KEY` solo si necesitas esa consulta.
@@ -349,11 +370,13 @@ definir para utilizar la ruta de subida por streaming incluida.
 | Agente Hermes | Modelo seleccionado en su perfil OpenRouter | Remoto |
 | Resúmenes y selección editorial | Modelo de Hermes, desde evidencia de Media Core | API: `MEDIA_GENERATION_BACKEND=hermes` (predeterminado) |
 | Descripción visual puntual | Visión de Hermes mediante `vision_analyze` | Nativa si el modelo/proveedor la admiten; auxiliar en otro caso |
-| Generación heredada e indexación visual temporal | `google/gemma-4-31b-it` | OpenRouter; `OPENROUTER_MODEL` / `OPENROUTER_VISION_MODEL` |
+| Traducción de diálogo y generación heredada | `google/gemma-4-31b-it` por defecto | OpenRouter, configurable con `OPENROUTER_MODEL` |
+| Rutas de visión de Media Core | `google/gemma-4-31b-it` por defecto | OpenRouter, configurable con `OPENROUTER_VISION_MODEL` |
 | Transcripción de vídeos | WhisperX con faster-whisper large-v3 en el servicio publicado | Replicate; versión fijada en `REPLICATE_MODEL` |
 | Diarización | pyannote a través de WhisperX | Remota; permisos HF cuando se solicita |
 | Búsqueda semántica textual | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` | Local + ChromaDB |
-| Búsqueda visual | `sentence-transformers/clip-ViT-B-32` | Local + ChromaDB |
+| Búsqueda visual de fotogramas | `sentence-transformers/clip-ViT-B-32` | Local + ChromaDB |
+| Búsqueda multimodal por texto o referencia | `google/embeddinggemma-2` para fotogramas, audio y vídeo | Local + ChromaDB, con candidatos de transcripción, OCR y CLIP |
 | OCR | RapidOCR ONNX, PP-OCRv4 detección/reconocimiento y clasificador mobile v2 | Local; pesos incluidos en el paquete |
 | TTS castellano | Piper `es_ES-carlfm-x_low` | Local |
 | TTS catalán | Piper `ca_ES-upc_ona-medium` | Local |
@@ -362,7 +385,8 @@ definir para utilizar la ruta de subida por streaming incluida.
 | Detección facial auxiliar | YuNet `face_detection_yunet_2023mar.onnx` | Local |
 | Cotejo facial auxiliar | SFace `face_recognition_sface_2021dec.onnx` | Local |
 | TTS alternativo | Qwen3-TTS | Replicate; opcional |
-| Extracción, conversión y cortes | FFmpeg/FFprobe | Binarios del sistema |
+| Extracción, conversión, cortes y mezcla del doblaje | FFmpeg/FFprobe | Binarios del sistema |
+| Subtítulos incrustados | Pillow para dibujar el texto y FFmpeg para superponerlo | Local |
 
 Los modelos generativos remotos **no se descargan al ordenador**. El modelo del
 agente es independiente del modelo del Core: cambiar `OPENROUTER_MODEL` no
@@ -452,13 +476,12 @@ cd ../..
 ```
 
 CLIP usa por defecto la caché Hugging Face/Sentence Transformers del usuario,
-normalmente bajo `~/.cache/huggingface/`. **No todos los pesos están en
-`data/models/`**. Se puede controlar la caché con `HF_HOME` en el entorno de Core.
+normalmente bajo `~/.cache/huggingface/`. Se puede controlar esa caché con
+`HF_HOME` en el entorno de Core.
 RapidOCR incluye sus ONNX en el paquete instalado.
 
-Cargar CLIP no indexa todos los vídeos. `media_index_visual` o la indexación de
-la web crean los embeddings de fotogramas de cada vídeo en la colección
-`media_visual_keyframes_v1`.
+La herramienta `media_index_visual` y la cola de la web crean los embeddings de
+fotogramas de cada vídeo en la colección `media_visual_keyframes_v1`.
 
 ### 5.6. Modelos faciales, opcionales
 
@@ -488,6 +511,27 @@ qwen/qwen3-tts:d490a561cf1171a8dc3d96d1e57efffea7dd34607148bb641f3d9de4e38c472e
 Puede cambiarse con `QWEN_TTS_MODEL`. Requiere Replicate y genera consumo remoto.
 La integración actual no admite catalán con ese proveedor: usa Piper para
 catalán. No hay que activarlo para el avatar ni descargar sus pesos.
+
+### 5.8. EmbeddingGemma 2 e índice multimodal
+
+Core descarga `google/embeddinggemma-2` al cargarlo por primera vez y guarda
+los pesos en `data/models/embeddings/` (aproximadamente 1,4 GB). El modelo
+puede ejecutarse en CPU con precisión bfloat16. `MULTIMODAL_CPU_THREADS`
+limita los hilos a 2 por defecto.
+
+Core selecciona fotogramas de escena y divide el audio y el vídeo en tramos
+de hasta 12 segundos. FFmpeg prepara audio mono a 16 kHz y hasta 12 fotogramas
+por tramo de vídeo, también en Windows. Los vectores se guardan en
+`media_embeddinggemma2_v1` dentro de Chroma y el progreso por vídeo en
+`data/cache/multimodal/`.
+
+Cada lote guarda su progreso y una ejecución posterior continúa con los
+elementos pendientes. En una búsqueda de texto acotada a un vídeo con índice
+utilizable, Core prioriza los resultados de EmbeddingGemma 2. Si no obtiene
+candidatos por esa vía, puede recurrir a la transcripción y a la búsqueda
+visual con CLIP y OCR. Los tiempos sirven para localizar tramos que Hermes
+debe comprobar antes de responder. Consulta la cobertura antes de interpretar
+que algo no aparece en el vídeo.
 
 ## 6. Instalar y configurar Hermes
 
@@ -673,8 +717,9 @@ hermes mcp test media-core
 
 El registro puede mostrar una selección interactiva. Para reproducir el
 prototipo, habilita todas las herramientas de Media Core. La prueba debe
-conectar y enumerar herramientas como `get_server_info`, `media_search`,
-`media_transcribe`, `media_summarize` y `media_clips`.
+conectar y enumerar herramientas como `get_server_info`, `media_read_transcript`,
+`media_clips`, `media_search_multimodal`, `media_dub_clip` y
+`media_subtitle_video`.
 
 La configuración se guarda en el **perfil Hermes**, no en el `.env` del Core:
 
@@ -816,28 +861,31 @@ Las transcripciones canónicas versionadas están en
 `TV04.mp4` con `TV04.json`. Tener solo el JSON permite consultar texto, pero
 no recortar ni inspeccionar un vídeo ausente.
 
-Copiar manualmente un vídeo no lanza todas las etapas de procesamiento. Usa
-la indexación de la interfaz o las herramientas MCP. La CLI del apartado 5
-solo sincroniza la colección textual, no genera los fotogramas y el índice visual.
+Para preparar un vídeo que has copiado manualmente, usa la indexación de la
+interfaz o las herramientas MCP. La CLI del apartado 5 solo sincroniza la
+colección textual. Para preparar la búsqueda por referencias, sigue el
+apartado 9.4.
 
 ### 9.2. Subir un vídeo nuevo
 
 1. Con los tres servicios activos, abre la biblioteca.
 2. Selecciona **Añadir vídeo** y sube primero un archivo corto de 30–60 segundos
    con audio comprensible.
-3. API valida la pista de vídeo con FFprobe, guarda el archivo e inicia la
-   transcripción y la indexación visual en segundo plano.
-4. Espera y verifica texto, resultados visuales y registros de API/Core.
+3. La API valida la pista de vídeo con FFprobe, guarda el archivo y solicita
+   a Core la transcripción y su indexación textual.
+4. Abre la transcripción cuando la biblioteca marque el vídeo como listo.
+   La cola persistente de la API prepara CLIP y el índice multimodal en
+   segundo plano y muestra el progreso en la ficha del vídeo.
+5. Cuando aparezca **Búsqueda por imagen, audio y vídeo disponible**, prueba
+   una consulta con un archivo de referencia.
 
 El límite predeterminado de API es **4.096 MB**; se configura con
 `MEDIA_UPLOAD_MAX_MB` en su `.env`. Acepta `.mp4`, `.mov`, `.mkv`, `.webm` y
 `.m4v` si FFprobe puede leer una pista de vídeo.
 
-**Importante:** la subida automática solicita `language=auto` y
-**`diarization=false`**. Para obtener turnos por hablante hay que solicitar
-expresamente diarización. Algunas etapas del flujo actual registran sus fallos
-como avisos y permiten finalizar: comprueba los resultados, no solo el estado
-«listo» de la biblioteca.
+La subida automática solicita `language=auto` y `diarization=false`. Para
+obtener turnos por hablante, solicita expresamente diarización. El estado de
+la transcripción y el del índice multimodal se muestran por separado.
 
 Las operaciones remotas pueden enviar audio, texto o fotogramas a sus
 proveedores. Usa material autorizado para las primeras pruebas.
@@ -848,27 +896,97 @@ Sustituye los identificadores por vídeos realmente disponibles:
 
 1. **«Qué vídeos hay disponibles»**: debe consultar el inventario real.
 2. **«Busca en TV04 dónde se habla de educación»**: comprueba texto y tiempos.
-3. **«Resume TV04»**: comprueba el LLM del Core.
+3. **«Resume TV04»**: comprueba que el resumen refleja la transcripción.
 4. **«Qué pone en pantalla en el minuto 4:30 de TV05; usa OCR»**: verifica el
    vídeo indicado y la lectura del fotograma.
-5. **«Qué ocurre visualmente en el minuto 1 de TV04»**: comprueba el VLM.
+5. **«Qué ocurre visualmente en el minuto 1 de TV04»**: comprueba que la
+   descripción coincide con el tramo indicado.
 6. **«Dame un clip de TV04 del segundo 30 al 45»**: abre el MP4 generado.
 7. Con diarización e identidad atribuida: **«Dame los cinco primeros clips de
    las intervenciones de Salvador Illa en TV04, en orden»**.
+8. Adjunta una captura de un vídeo indexado y pregunta **«¿En qué momento
+   aparece esta imagen en TV04?»**. Abre el tramo y contrasta la coincidencia.
+9. Prueba el doblaje y los subtítulos con un tramo corto siguiendo los
+   ejemplos del apartado 9.5. Reproduce el MP4 final para comprobar texto,
+   idioma del audio y sincronización.
 
 Separar voces no asigna por sí solo nombres reales. Las peticiones por persona
 dependen también de las identidades y transcripciones disponibles.
 
-### 9.4. Referencia de llamadas MCP
+Escribe `/` en el chat para ver los comandos disponibles. Usa `/ayuda` para
+consultarlos, `/estado` para diagnosticar servicios y **Detener generación**
+para interrumpir un turno en curso.
+
+### 9.4. Buscar por texto, imagen, audio o vídeo
+
+- **Preparar un vídeo existente.** Si ya tiene transcripción, pulsa
+  **Preparar búsqueda multimodal** en la biblioteca. Ese botón también permite
+  reintentar una indexación fallida. Desde el chat puedes pedir `/indexar TV04`.
+  `/indexar-visual TV04` prepara el índice visual de fotogramas.
+- **Buscar por descripción.** Prueba `/buscar TV04 dónde se oye un aplauso` o
+  `/buscar-visual TV04 cuándo aparece un rótulo azul`. Mientras se prepara el
+  índice multimodal, puedes seguir buscando por transcripción.
+- **Buscar con una referencia.** Pulsa **Adjuntar referencia**, elige una
+  imagen, un audio o un clip y añade una pregunta en lenguaje natural.
+  Indica un ID como `TV04` para limitar la búsqueda a ese vídeo. El chat
+  admite un archivo por mensaje, de hasta 50 MB, y un máximo de 30 segundos
+  para audio o vídeo. Usa los comandos con `/` en mensajes sin adjuntos.
+
+Los adjuntos se procesan como referencias de búsqueda en la biblioteca. Si
+adjuntas una captura y acotas a un vídeo corto, Core puede cotejarla con
+fotogramas del vídeo antes de buscar por similitud. La API elimina el archivo
+temporal al terminar o cancelar el turno. También
+puedes consultar el índice directamente con `POST /api/search/multimodal`,
+que acepta los campos de formulario `q`, `video_id`, `top_k` y `file`.
+
+### 9.5. Doblar y subtitular un vídeo o clip
+
+En el chat, sustituye `TV04` y los tiempos por un tramo que tenga diálogo:
+
+```text
+/doblar TV04 del segundo 30 al 45 al inglés
+/subtitular TV04 del segundo 30 al 45
+/subtitular TV04 del segundo 30 al 45 en inglés
+Dame un clip de TV04 del segundo 30 al 45, dóblalo al inglés y añade subtítulos en inglés.
+```
+
+- **Doblaje.** Core traduce por segmentos con `OPENROUTER_MODEL`, sintetiza la
+  voz y ajusta la duración de cada frase al intervalo original. Atenúa el
+  audio original mientras suena la voz traducida y conserva la duración y
+  los fotogramas del vídeo. La sincronización es temporal y los labios quedan
+  intactos. Piper admite castellano, catalán e inglés (`es`, `ca`, `en`).
+  Para francés, alemán, italiano o portugués (`fr`, `de`, `it`, `pt`), la
+  herramienta MCP requiere un proveedor de voz compatible como Qwen en
+  Replicate.
+- **Subtítulos.** Sin idioma de destino se usa la transcripción original.
+  Si indicas `es`, `ca`, `en`, `fr`, `de`, `it` o `pt`, Core traduce el
+  texto con OpenRouter y conserva los tiempos. El chat entrega el MP4 con
+  subtítulos visibles. Core guarda también el SRT junto al MP4 en
+  `data/outputs/clips/`. Pillow dibuja los subtítulos y FFmpeg los incrusta.
+- **Ambos en el mismo clip.** Primero se completa el doblaje. Para añadir los
+  subtítulos se usa ese MP4 como fuente, junto con el ID del vídeo y el
+  intervalo originales. Así el MP4 final conserva el audio doblado y Core
+  puede reutilizar los segmentos de la transcripción.
+
+Para mencionar un resultado en otro mensaje, pulsa su nombre en la tarjeta.
+El chat inserta el nombre donde está el cursor o sustituye el texto
+seleccionado. Se envía como parte del mensaje. Si hay varios resultados,
+indica también el vídeo y el intervalo para identificar el clip.
+
+### 9.6. Referencia de llamadas MCP
 
 Estas expresiones ilustran herramientas; **no son comandos de shell**:
 
 ```text
 get_server_info()
 media_transcribe(source="TV04", language="ca", diarization=True)
+media_read_transcript(video_id="TV04")
 media_index_visual(video_id="TV04")
 media_search_visual(query="presentador en plató", video_id="TV04", top_k=3)
-media_describe_scene(video_id="TV04", timestamp=60.0)
+media_index_multimodal(video_id="TV04", max_items=2)
+media_multimodal_index_status(video_id="TV04")
+media_search_multimodal(query="aplausos del público", video_id="TV04", top_k=5)
+media_scene_context(video_id="TV04", timestamp=60.0)
 media_speakers(video_id="TV04", person="Salvador Illa")
 media_clips(video_id="TV04", person="Salvador Illa", turn_index=6)
 media_clips(video_id="TV04", person="Salvador Illa", turn_index=1, max_clips=5)
@@ -880,7 +998,25 @@ Registro completo:
 Para un corte exacto, reutiliza tiempos o índices del MCP en vez de repetir
 una búsqueda textual para recuperar una intervención numerada.
 
-## 10. Avatar, micrófono y Piper
+Para doblar y subtitular el mismo clip, reutiliza las rutas devueltas por
+cada herramienta y los tiempos absolutos del corte. En este ejemplo
+`cut_video_file` y `dubbed_video_file` representan esas rutas:
+
+```text
+media_dub_clip(source=cut_video_file, video_id="TV04", start_seconds=30.0, end_seconds=45.0, target_language="en")
+media_subtitle_video(source=dubbed_video_file, video_id="TV04", start_seconds=30.0, end_seconds=45.0, target_language="en")
+```
+
+Si alguna llamada devuelve `job_id`, consulta
+`media_job_status(job_id=..., wait_seconds=25)` hasta `completed`,
+`failed` o `cancelled`. Al completar, usa `result.dubbed_video_file` o
+`result.subtitled_video_file`. Si la primera llamada acaba durante la espera,
+la ruta ya viene en su respuesta. Continúa con el subtitulado cuando tengas
+el MP4 doblado.
+
+## 10. Avatar, dictado y grabación de referencia
+
+### 10.1. Dictar al avatar y escuchar la respuesta
 
 Tras descargar Piper/Whisper y reiniciar Core/API:
 
@@ -906,6 +1042,18 @@ hilos por defecto; la grabación está limitada a 60 segundos y 8 MB. Es voz
 por turnos, no reconocimiento continuo con interrupciones.
 
 Más detalle: [avatar y voz](docs/architecture/VOICE-AVATAR.md).
+
+### 10.2. Grabar audio para buscar en la biblioteca
+
+Pulsa **Grabar audio** en el chat y concede permiso al micrófono. Pulsa
+**Detener** para revisar el audio o **Cancelar** para descartarlo. La captura
+se detiene automáticamente al acercarse a 30 segundos. Al detenerla queda
+adjunta al borrador y puedes añadir una pregunta como «¿Dónde se oye esto en
+TV04?» antes de enviar.
+
+Esta grabación se usa como muestra sonora. La API convierte a WAV mono a
+16 kHz las referencias que llegan en otro formato de solo audio, incluidas
+las grabaciones del navegador, para que Core pueda compararlas con el índice.
 
 ## 11. Uso diario y actualizaciones
 
@@ -947,8 +1095,9 @@ cd ../..
 ```
 
 Revisa las novedades de `.env.example` sin copiarlas encima de tus claves.
-Actualiza la copia de `media-video-archive/SKILL.md` si cambió; las skills de
-`external_dirs` ya leen el repositorio. Reinicia los procesos.
+Actualiza la copia de `media-video-archive/SKILL.md` si cambió. Las skills de
+`external_dirs` ya leen el repositorio. Reinicia los servicios y comprueba
+con `hermes mcp test media-core` que el perfil ve las herramientas nuevas.
 
 No ejecutes `hermes update` sobre la copia incluida por tu cuenta: su
 actualización debe integrarse y revisarse en el monorepo.
@@ -1022,12 +1171,28 @@ un vídeo por otro conservando su identificador y material antiguo. Core valida
 la identidad de los archivos para reutilizar cachés; revisa o regenera el
 material correspondiente.
 
-### Búsqueda visual, semántica u OCR sin resultados
+### Búsqueda visual, multimodal u OCR sin resultados
 
-Un JSON no crea fotogramas ni índice visual. Comprueba vídeo, CLIP, RapidOCR,
-MiniLM y colecciones; solicita `media_index_visual` y OCR cuando corresponda.
-La búsqueda léxica puede funcionar aunque falle la semántica: consulta el
-estado y logs para distinguirlas.
+Comprueba primero que el vídeo se reproduce y que su transcripción corresponde
+al archivo actual. Si la búsqueda por referencia tiene poca cobertura, revisa
+el progreso en la biblioteca o con `media_multimodal_index_status`. Si la
+indexación falló, revisa los logs de Core, la descarga de EmbeddingGemma 2,
+el espacio en disco y FFmpeg. Reintenta desde **Preparar búsqueda multimodal**.
+Para un fallo específico de búsqueda por fotogramas o de lectura de texto en
+pantalla, comprueba CLIP y RapidOCR.
+
+### El doblaje o el subtitulado falla
+
+Comprueba que el tramo tiene diálogo, que la transcripción corresponde a la
+fuente y que FFmpeg y FFprobe están disponibles. Si el chat no encuentra un
+clip por su nombre, indica también el ID y el intervalo originales. Al usar
+MCP directamente, pasa la ruta devuelta por la herramienta anterior.
+
+Para el doblaje y los subtítulos traducidos, comprueba la clave y el modelo
+OpenRouter de Core. Si doblas con Piper, verifica que tienes instalada la voz
+del idioma de destino. Si falla la exportación de subtítulos con el
+codificador de hardware, Core intenta x264. Puedes fijar
+`MEDIA_SUBTITLE_ENCODER=libx264` en el entorno de Core y reiniciar el servicio.
 
 ### El avatar no tiene voz o no transcribe
 
@@ -1088,9 +1253,11 @@ cd ../..
 En Windows usa `npm.cmd` si hace falta. Detén `npm run dev` antes de compilar
 el mismo frontend para evitar interferencias sobre `.next`.
 
-Las pruebas automatizadas no verifican por sí solas saldo/acceso real a APIs,
-permisos de micrófono o calidad de diarización. Completa la prueba funcional
-con material autorizado antes de dar por preparada una instalación nueva.
+Las pruebas automatizadas cubren la indexación y búsqueda multimodal, la API
+de referencias, el doblaje, el subtitulado y la inserción del nombre de un
+resultado en el borrador. Completa la prueba funcional con material autorizado
+para comprobar también el acceso a proveedores, el permiso de micrófono, la
+calidad de diarización y la reproducción del MP4 final.
 
 Para comprobar los locks sin instalar paquetes:
 
@@ -1112,11 +1279,13 @@ shared/test-vectors/transcripts/ Transcripciones canónicas versionadas
 scripts_arranque/                Lanzadores de API y frontend
 data/test-vectors/videos/        Vídeos locales
 data/models/                    Pesos de los descargadores del Core
-data/indexes/chroma/             Índices de texto y fotogramas
+data/indexes/chroma/             Índices textual, visual y multimodal
 data/cache/                     Transcripciones, fotogramas, OCR y otras cachés
+data/cache/multimodal/           Manifiesto y progreso de indexación por vídeo
 data/outputs/audio/              WAV/MP3 generados
-data/outputs/clips/              MP4 generados
+data/outputs/clips/              Cortes, MP4 doblados o subtitulados y SRT
 data/state/                     history.sqlite y estado de la aplicación
+data/state/search-uploads/       Archivos temporales de referencia
 data/state/hermes/               Perfil Hermes propuesto por esta guía
 docs/architecture/              Documentación técnica
 docs/model-catalog/             Modelos evaluados
@@ -1130,6 +1299,7 @@ examples/mcp-hello-world/        Ejemplo independiente
 - `MEDIA_DATA_DIR`: datos locales de Core/API.
 - `MEDIA_WEB_DATA`: estado de API, por defecto `data/state/`.
 - `CHROMA_PERSIST_DIR`: persistencia vectorial.
+- `MEDIA_FFMPEG_DIR`: ubicación de FFmpeg y FFprobe para Media Core.
 - `PIPER_MODEL_DIR`: voces alternativas.
 - `HF_HOME`: caché Hugging Face si se define en el entorno.
 
@@ -1218,11 +1388,13 @@ sustituyen la instalación local ejecutable de este README.
 - [ ] `.env` locales preparados, con claves reales y sin marcadores.
 - [ ] Perfil Hermes con un modelo accesible en OpenRouter que utilice herramientas.
 - [ ] Piper y Whisper del micrófono descargados si se utiliza el avatar.
-- [ ] MiniLM, CLIP y OCR preparados; material disponible indexado.
+- [ ] MiniLM, CLIP y OCR preparados. Al menos un vídeo con índice multimodal completo.
 - [ ] Skills compartidas y `media-video-archive` en el perfil correcto.
 - [ ] Core activo y `hermes mcp test media-core` satisfactorio.
 - [ ] API/frontend activos y `/api/health` con los componentes disponibles.
 - [ ] Conversación real resuelta con las herramientas Core.
 - [ ] Vídeo corto transcrito, buscado y recortado; archivos reproducibles.
+- [ ] Búsqueda con una imagen, audio o clip de referencia probada.
+- [ ] Voz de destino disponible y MP4 doblado y subtitulado comprobado si se van a usar estas funciones.
 - [ ] Diarización probada expresamente si se necesitan turnos por persona.
 - [ ] Micrófono y Piper comprobados si se activa voz.

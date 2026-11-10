@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Documentación de MedIA</title>
+  <style>
+    :root{--bg:#202124;--panel:#1c1d1f;--raised:#292a2d;--line:#3a3c40;--text:#e7e8ea;--muted:#a8abb1;--accent:#48a9e6;--code:#18191b}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}.page{min-height:100dvh;display:grid;grid-template-columns:320px minmax(0,1fr)}
+    aside{position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--panel);border-right:1px solid var(--line)}.brand{min-height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);font-size:17px;font-weight:700}.brand strong{color:var(--accent)}.brand span{color:var(--text)}
+    .search{min-height:80px;display:flex;align-items:center;gap:10px;padding:0 22px;border-bottom:1px solid var(--line);color:var(--muted)}.search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:inherit;font-size:14px}.search:focus-within{box-shadow:inset 3px 0 var(--accent)}
+    nav{flex:1;overflow:auto;padding:24px 22px 38px;scrollbar-color:#5b5e64 transparent}.group+.group{margin-top:28px}.group h2{margin:0 0 9px;color:var(--accent);font-size:14px}.group a{display:block;padding:5px 0;color:var(--muted);font-size:12px;line-height:1.4;text-decoration:none}.group a:hover,.group a:focus-visible{color:var(--text)}.open-app{min-height:54px;display:flex;align-items:center;padding:0 22px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;text-decoration:none}.open-app:hover{color:var(--text)}
+    main{min-width:0}.content{width:min(1040px,calc(100% - 64px));margin:auto;padding:76px 0 50px}.hero{padding-bottom:64px;border-bottom:1px solid var(--line)}.path{display:block;margin-bottom:24px;color:var(--accent);font-size:12px}.hero h1{max-width:23ch;margin:0;font-size:clamp(34px,4.4vw,54px);font-weight:500;line-height:1.15;letter-spacing:-.035em}.hero p{max-width:70ch;margin:26px 0 0;color:var(--muted);font-family:system-ui,sans-serif;font-size:17px;line-height:1.75}.source{margin-top:26px;padding:16px 18px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.6}
+    section.doc{scroll-margin-top:28px;padding:54px 0;border-bottom:1px solid var(--line)}section.doc>h2{margin:0 0 20px;color:var(--accent);font-size:25px;letter-spacing:-.03em}section.doc>h3{margin:30px 0 12px;font-size:15px}section.doc>p{max-width:78ch;margin:0 0 18px;color:var(--muted);font-family:system-ui,sans-serif;font-size:15px;line-height:1.8}code{font-family:inherit}.facts{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin:26px 0}.fact{padding:17px 0;border-top:1px solid var(--line)}.fact strong,.fact span{display:block}.fact strong{margin-bottom:7px;font-size:13px}.fact span{color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.65}
+    pre{margin:24px 0;padding:20px;overflow:auto;border:1px solid var(--line);border-radius:4px;background:var(--code);color:#d8dadd;font-size:12px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}.note{padding:16px 18px;border-left:2px solid var(--accent);background:color-mix(in srgb,var(--raised) 55%,transparent);color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.7}.steps{margin:24px 0 0;padding:0;list-style:none;counter-reset:step}.steps li{counter-increment:step;display:grid;grid-template-columns:42px 190px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:baseline}.steps li:before{content:counter(step,decimal-leading-zero);color:var(--accent);font-size:12px}.steps strong{font-size:13px}.steps span{color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.6}
+    details{border-bottom:1px solid var(--line)}details:first-child{border-top:1px solid var(--line)}summary{padding:17px 4px;color:var(--text);font-size:13px;cursor:pointer}summary:hover{color:var(--accent)}details>p{margin:0;padding:0 4px 18px;color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.7}.table{margin-top:24px;border-top:1px solid var(--line)}.row{display:grid;grid-template-columns:220px 1fr;gap:24px;padding:14px 0;border-bottom:1px solid var(--line)}.row code{color:var(--accent);font-size:12px}.row span{color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.6}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:12px 28px;margin:25px 0 0;padding:0;list-style:none}.checklist li{position:relative;padding-left:23px;color:var(--muted);font-family:system-ui,sans-serif;font-size:13px;line-height:1.65}.checklist li:before{content:"✓";position:absolute;left:0;color:var(--accent)}footer{display:flex;justify-content:space-between;padding-top:40px;color:var(--muted);font-size:12px}footer a{color:var(--accent)}
+    @media(max-width:820px){.page{grid-template-columns:1fr}aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-height:330px}.group+.group{margin-top:0}.open-app{display:none}.content{width:min(100% - 40px,760px);padding-top:48px}}
+    @media(max-width:560px){.brand{min-height:58px}.search{min-height:64px}nav{grid-template-columns:1fr}.content{width:calc(100% - 32px);padding-top:40px}.hero h1{font-size:34px}.facts,.checklist{grid-template-columns:1fr}.steps li{grid-template-columns:34px 1fr;gap:8px 12px}.steps span{grid-column:2}.row{grid-template-columns:1fr;gap:7px}}
+    @media(prefers-color-scheme:light){:root{--bg:#f7f8fa;--panel:#f0f2f5;--raised:#e7eaf0;--line:#cfd4dc;--text:#25282d;--muted:#5c626c;--accent:#116ba5;--code:#e4e7ec}pre{color:#25282d}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+<div class="page">
+  <aside>
+    <div class="brand"><strong>MedIA</strong><span>docs</span></div>
+    <label class="search"><span aria-hidden="true">⌕</span><span hidden>Buscar en la documentación</span><input id="search" type="search" placeholder="Buscar" aria-label="Buscar en la documentación"></label>
+    <nav id="index" aria-label="Índice">
+      <div class="group"><h2>Instalación</h2><a href="#arquitectura" data-keywords="servicios puertos">Arquitectura y puertos</a><a href="#requisitos" data-keywords="windows mac linux">Requisitos</a><a href="#dependencias" data-keywords="git uv npm">Instalar dependencias</a><a href="#configuracion" data-keywords="claves env">Claves y configuración</a><a href="#modelos" data-keywords="piper whisper clip ocr">Preparar modelos</a><a href="#hermes" data-keywords="skills mcp perfil">Configurar Hermes</a></div>
+      <div class="group"><h2>Puesta en marcha</h2><a href="#arranque" data-keywords="terminal scripts">Arranque local</a><a href="#estado" data-keywords="health diagnóstico">Comprobar el estado</a><a href="#diario" data-keywords="detener parar">Uso diario y parada</a></div>
+      <div class="group"><h2>Usar MedIA</h2><a href="#flujo" data-keywords="subir indexar">Flujo recomendado</a><a href="#biblioteca" data-keywords="formatos límite">Biblioteca y subidas</a><a href="#busqueda" data-keywords="multimodal referencias">Indexación y búsqueda</a><a href="#chat" data-keywords="comandos">Chat con MedIA</a><a href="#entregables" data-keywords="clips doblaje subtítulos">Crear entregables</a><a href="#voz" data-keywords="avatar micrófono">Voz y avatar</a></div>
+      <div class="group"><h2>Mantenimiento</h2><a href="#problemas" data-keywords="errores puertos">Resolver problemas</a><a href="#actualizar" data-keywords="git pull">Actualizar</a><a href="#pruebas" data-keywords="pytest build">Pruebas</a><a href="#datos" data-keywords="privacidad carpetas">Datos y privacidad</a><a href="#checklist" data-keywords="lista final">Lista final</a></div>
+    </nav>
+    <a class="open-app" href="http://127.0.0.1:3000">Abrir la aplicación</a>
+  </aside>
+
+  <main><div class="content">
+    <header class="hero"><span class="path">MedIA / Guía completa</span><h1>Instala, arranca y utiliza el archivo audiovisual.</h1><p>Documentación autónoma basada en el README raíz y en las guías de Media Core, Media API y Media Web.</p><div class="source">Este archivo funciona sin servidor. Sigue la instalación una vez; para el uso diario solo tendrás que arrancar los servicios.</div></header>
+
+    <section class="doc" id="arquitectura"><h2>Arquitectura y puertos</h2><p>La interfaz coordina varios procesos. Cada componente debe apuntar al siguiente servicio.</p><div class="facts"><div class="fact"><strong>Media Web · 3000</strong><span>Biblioteca, chat, avatar y panel de uso.</span></div><div class="fact"><strong>Media API · 8010</strong><span>Subidas, trabajos, historial, cola y puente con Hermes.</span></div><div class="fact"><strong>Media Core · 8001/mcp</strong><span>Índices, búsqueda y procesamiento audiovisual.</span></div><div class="fact"><strong>Hermes · perfil local</strong><span>Interpreta peticiones y utiliza las herramientas MCP.</span></div></div><div class="note">La API inicia Hermes cuando hace falta. No necesitas dejar abierto <code>hermes chat</code>, ejecutar un gateway ni instalar su escritorio.</div></section>
+
+    <section class="doc" id="requisitos"><h2>Requisitos</h2><div class="facts"><div class="fact"><strong>Software</strong><span>Git, uv, Python 3.11, Node 24 LTS o Node 22 reciente, npm, FFmpeg y FFprobe.</span></div><div class="fact"><strong>Equipo</strong><span>16 GB de RAM como orientación, 32 GB recomendados para indexar.</span></div><div class="fact"><strong>Espacio</strong><span>15-25 GB iniciales, además del tamaño de los vídeos.</span></div><div class="fact"><strong>Sistemas</strong><span>Windows PowerShell, macOS o Linux. WSL2 debe contener toda la instalación.</span></div></div><details><summary>Comprobar herramientas</summary><pre><code>git --version
+node --version
+npm --version
+uv --version
+ffmpeg -version
+ffprobe -version
+uv python install 3.11</code></pre><p>En Windows utiliza <code>npm.cmd</code> si PowerShell bloquea <code>npm.ps1</code>. No hace falta activar manualmente los entornos.</p></details><details><summary>Instalar en macOS</summary><pre><code>brew install git ffmpeg uv node@24
+export PATH="$(brew --prefix node@24)/bin:$PATH"
+uv python install 3.11</code></pre></details><details><summary>Instalar en Windows</summary><pre><code>winget install --id Git.Git -e
+winget install --id OpenJS.NodeJS.LTS -e
+winget install --id Gyan.FFmpeg -e
+winget install --id astral-sh.uv -e</code></pre></details></section>
+
+    <section class="doc" id="dependencias"><h2>Instalar dependencias</h2><p>Ejecuta todo desde la raíz de un clon nuevo. Cada componente mantiene su propio entorno y lock.</p><pre><code>git clone &lt;URL_DEL_REPOSITORIO&gt; MedIA
+cd MedIA
+
+cd services/media-core
+uv sync --python 3.11 --locked --extra dev
+cd ../..
+
+cd services/media-api
+uv sync --python 3.11 --locked --extra dev
+cd ../..
+
+cd docker/hermes-agent
+uv sync --python 3.11 --locked --extra mcp
+cd ../..
+
+cd apps/media-web
+npm ci
+cd ../..</code></pre><div class="note">No uses <code>uv add</code>, <code>uv lock --upgrade</code> ni <code>npm update</code> para preparar un clon. No copies <code>.venv</code> entre equipos.</div></section>
+
+    <section class="doc" id="configuracion"><h2>Claves y configuración</h2><div class="table"><div class="row"><code>OPENROUTER_API_KEY</code><span>Modelo de Hermes, traducción y rutas generativas o visuales.</span></div><div class="row"><code>REPLICATE_API_KEY</code><span>WhisperX para vídeos nuevos y Qwen TTS opcional.</span></div><div class="row"><code>HUGGINGFACE_ACCESS_TOKEN</code><span>Pesos protegidos para diarización.</span></div><div class="row"><code>FAL_ADMIN_KEY</code><span>Consulta opcional de gasto FAL.</span></div></div><h3>Crear archivos locales</h3><pre><code>cp services/media-core/.env.example services/media-core/.env
+cp services/media-api/.env.example services/media-api/.env
+cp apps/media-web/.env.example apps/media-web/.env.local</code></pre><details><summary>Configuración esencial de la API</summary><pre><code>HERMES_MODE=local
+MEDIA_GENERATION_BACKEND=hermes
+HERMES_AGENT_DIR=/ruta/MedIA/docker/hermes-agent
+HERMES_PYTHON=/ruta/MedIA/docker/hermes-agent/.venv/bin/python
+HERMES_HOME=/ruta/MedIA/data/state/hermes
+HERMES_TUI_TOOLSETS=skills,media-core
+MEDIA_MCP_URL=http://127.0.0.1:8001/mcp</code></pre><p>En Windows el ejecutable termina en <code>.venv/Scripts/python.exe</code>. Terminal y API deben utilizar el mismo <code>HERMES_HOME</code>.</p></details><details><summary>Configuración del frontend</summary><pre><code>MEDIA_API_URL=http://127.0.0.1:8010</code></pre><p>Es opcional con el puerto predeterminado. No definas <code>NEXT_PUBLIC_MEDIA_UPLOAD_URL</code> para conservar la subida por streaming.</p></details></section>
+
+    <section class="doc" id="modelos"><h2>Preparar modelos</h2><p>Los modelos locales se descargan una vez. Los modelos generativos remotos no se guardan en el equipo.</p><div class="facts"><div class="fact"><strong>Piper</strong><span>Voces locales en castellano, catalán e inglés.</span></div><div class="fact"><strong>Whisper local</strong><span>Dictado del micrófono. No sustituye WhisperX para vídeos.</span></div><div class="fact"><strong>MiniLM</strong><span>Búsqueda semántica de transcripciones.</span></div><div class="fact"><strong>CLIP y OCR</strong><span>Búsqueda visual y lectura de texto visible.</span></div><div class="fact"><strong>EmbeddingGemma 2</strong><span>Índice multimodal local de unos 1,4 GB.</span></div></div><pre><code>cd services/media-core
+uv run --locked --extra dev python -m media_core.services.piper_tts --download
+uv run --locked --extra dev python -m media_core.services.local_voice --download
+uv run --locked --extra dev python -m media_core.indexing
+cd ../..</code></pre><div class="note">No ejecutes <code>--rebuild</code> en cada arranque. Detén Core antes de reconstruir una colección.</div></section>
+
+    <section class="doc" id="hermes"><h2>Configurar Hermes</h2><ol class="steps"><li><strong>Selecciona el perfil.</strong><span>Usa <code>data/state/hermes</code> como <code>HERMES_HOME</code>.</span></li><li><strong>Configura el modelo.</strong><span>Ejecuta <code>hermes setup</code> y <code>hermes model</code> con un modelo que admita herramientas.</span></li><li><strong>Carga las skills.</strong><span>Añade la ruta absoluta <code>shared/skills</code> a <code>skills.external_dirs</code>.</span></li><li><strong>Instala la skill general.</strong><span>Copia <code>media-video-archive.md</code> como <code>SKILL.md</code> dentro del perfil.</span></li><li><strong>Conecta Core.</strong><span>Registra el MCP con el nombre exacto <code>media-core</code>.</span></li></ol><pre><code>export MEDIA_REPO="$(pwd)"
+export HERMES_HOME="$MEDIA_REPO/data/state/hermes"
+export MEDIA_HERMES_CLI="$MEDIA_REPO/docker/hermes-agent/.venv/bin/hermes"
+mkdir -p "$HERMES_HOME"
+hermes() { "$MEDIA_HERMES_CLI" "$@"; }
+hermes setup
+hermes model</code></pre><div class="note">El código está en <code>docker/hermes-agent</code>, pero el modo local no obliga a utilizar Docker.</div></section>
+
+    <section class="doc" id="arranque"><h2>Arranque local</h2><p>Inicia Core primero. Después arranca API y web, manualmente o con el lanzador.</p><pre><code># Terminal 1: Media Core
+cd services/media-core
+uv run --locked --extra dev python server.py
+
+# Terminal 2: API y web en macOS/Linux
+bash scripts_arranque/start-media-web.sh
+
+# Windows
+.\scripts_arranque\start-media-web.ps1</code></pre><details><summary>Arranque manual en tres terminales</summary><pre><code># Core
+cd services/media-core
+uv run --locked --extra dev python server.py
+
+# API
+cd services/media-api
+uv run --locked --extra dev uvicorn app.main:app --host 127.0.0.1 --port 8010
+
+# Web
+cd apps/media-web
+npm run dev</code></pre></details><div class="note">El lanzador no instala ni arranca Core y tampoco configura Hermes. No ejecutes a la vez el arranque manual y el lanzador.</div></section>
+
+    <section class="doc" id="estado"><h2>Comprobar el estado</h2><pre><code>curl --fail http://127.0.0.1:8010/api/health
+
+hermes mcp add media-core --url http://127.0.0.1:8001/mcp
+hermes mcp test media-core
+hermes tools list --platform cli
+hermes skills list</code></pre><p><code>hermes_running=false</code> puede ser normal antes del primer mensaje. Una conversación real prueba la clave, el modelo, las skills y las herramientas.</p></section>
+
+    <section class="doc" id="diario"><h2>Uso diario y parada</h2><ol class="steps"><li><strong>Arranca Core.</strong><span>Espera al puerto 8001.</span></li><li><strong>Arranca API y web.</strong><span>Usa el lanzador o terminales separadas.</span></li><li><strong>Abre la aplicación.</strong><span>Visita <code>http://127.0.0.1:3000</code>.</span></li><li><strong>Detén con seguridad.</strong><span>Espera las tareas, detén web/API y finalmente Core.</span></li></ol><p>Los índices y archivos guardados permanecen. Los trabajos activos en memoria se interrumpen al parar Core.</p></section>
+
+    <section class="doc" id="flujo"><h2>Flujo recomendado</h2><ol class="steps"><li><strong>Añade un vídeo corto.</strong><span>Empieza con 30-60 segundos y audio comprensible.</span></li><li><strong>Espera la transcripción.</strong><span>La búsqueda textual se activa primero.</span></li><li><strong>Prepara el índice.</strong><span>La cola habilita imagen, sonido y vídeo.</span></li><li><strong>Pregunta o crea.</strong><span>Busca, resume, recorta, dobla o subtitula.</span></li><li><strong>Verifica.</strong><span>Reproduce el tramo final y contrasta contenido y tiempos.</span></li></ol></section>
+
+    <section class="doc" id="biblioteca"><h2>Biblioteca y subidas</h2><div class="facts"><div class="fact"><strong>Formatos</strong><span>MP4, MOV, MKV, WEBM y M4V legibles por FFprobe.</span></div><div class="fact"><strong>Límite</strong><span>4.096 MB por defecto, configurable con <code>MEDIA_UPLOAD_MAX_MB</code>.</span></div><div class="fact"><strong>Streaming</strong><span><code>/api/videos</code> transmite el archivo sin depender del límite de Next.js.</span></div><div class="fact"><strong>Identidad</strong><span>Vídeo y transcripción deben compartir ID, por ejemplo TV04.</span></div></div><p>Desde cada ficha puedes reproducir, consultar progreso, preparar índices, reintentar o eliminar el vídeo y sus datos derivados.</p></section>
+
+    <section class="doc" id="busqueda"><h2>Indexación y búsqueda</h2><div class="facts"><div class="fact"><strong>Texto</strong><span>MiniLM busca en lo pronunciado.</span></div><div class="fact"><strong>Visual</strong><span>CLIP y OCR localizan objetos, acciones y rótulos.</span></div><div class="fact"><strong>Multimodal</strong><span>EmbeddingGemma 2 compara texto, imagen, audio y vídeo.</span></div><div class="fact"><strong>Referencias</strong><span>Un archivo por mensaje, hasta 50 MB y 30 segundos.</span></div></div><pre><code>/buscar TV04 dónde se oye un aplauso
+/buscar-visual TV04 cuándo aparece un rótulo azul
+/indexar TV04
+/indexar-visual TV04</code></pre><p>Los adjuntos temporales se eliminan al terminar o cancelar. Puedes seguir buscando por transcripción mientras se completa el índice multimodal.</p></section>
+
+    <section class="doc" id="chat"><h2>Chat con MedIA</h2><p>Indica el vídeo, el momento y el resultado esperado. Escribe <code>/</code> para abrir el selector y usa Detener generación para cancelar.</p><div class="table"><div class="row"><code>/resumir</code><span>Resume un vídeo.</span></div><div class="row"><code>/buscar</code><span>Busca por texto, imagen o sonido.</span></div><div class="row"><code>/clip</code><span>Extrae un tramo.</span></div><div class="row"><code>/doblar</code><span>Traduce y sincroniza el audio.</span></div><div class="row"><code>/subtitular</code><span>Genera subtítulos originales o traducidos.</span></div><div class="row"><code>/describir</code><span>Describe un momento y devuelve un fotograma.</span></div><div class="row"><code>/ocr</code><span>Lee texto visible.</span></div><div class="row"><code>/hablantes</code><span>Consulta turnos de voz.</span></div><div class="row"><code>/estado</code><span>Diagnostica servicios.</span></div><div class="row"><code>/ayuda</code><span>Lista todas las funciones.</span></div></div></section>
+
+    <section class="doc" id="entregables"><h2>Crear entregables</h2><pre><code>/doblar TV04 del segundo 30 al 45 al inglés
+/subtitular TV04 del segundo 30 al 45
+Dame un clip de TV04 del segundo 30 al 45, dóblalo y añade subtítulos en inglés.</code></pre><div class="facts"><div class="fact"><strong>Clips</strong><span>Cortes por tiempo, tema, persona o aparición visual.</span></div><div class="fact"><strong>Doblaje</strong><span>Traducción por segmentos. Conserva duración y ambiente; no modifica los labios.</span></div><div class="fact"><strong>Subtítulos</strong><span>Texto original o traducido, MP4 visible y SRT.</span></div><div class="fact"><strong>Idiomas</strong><span>Piper admite es, ca y en. Otros idiomas requieren un proveedor compatible.</span></div></div><div class="note">Para doblar y subtitular el mismo clip, completa primero el doblaje y utiliza ese MP4 como fuente.</div></section>
+
+    <section class="doc" id="voz"><h2>Voz y avatar</h2><div class="facts"><div class="fact"><strong>Hablar</strong><span>Una pausa de 1,4 segundos termina, transcribe y envía.</span></div><div class="fact"><strong>Dictado</strong><span>Máximo 60 segundos y 8 MB.</span></div><div class="fact"><strong>Referencia sonora</strong><span>Graba una muestra de hasta 30 segundos.</span></div><div class="fact"><strong>Navegador</strong><span>El micrófono requiere localhost, 127.0.0.1 o HTTPS.</span></div></div><p>Para diagnosticar consulta <code>http://127.0.0.1:8010/api/voice/status</code>.</p></section>
+
+    <section class="doc" id="problemas"><h2>Resolver problemas</h2><details><summary>Core no conecta</summary><p>Comprueba 8001, que <code>MEDIA_MCP_URL</code> termina en <code>/mcp</code> y ejecuta <code>hermes mcp test media-core</code>.</p></details><details><summary>Hermes no ve herramientas</summary><p>Revisa las rutas de Hermes, el mismo <code>HERMES_HOME</code>, <code>skills.external_dirs</code> y los toolsets.</p></details><details><summary>Error de OpenRouter o Replicate</summary><p>Revisa clave, modelo y saldo. 401/403 suele ser acceso, 402 saldo y 429 límites.</p></details><details><summary>No hay transcripción o hablantes</summary><p>Comprueba Replicate, la pista de audio y el token HF. La subida no activa diarización por defecto.</p></details><details><summary>La búsqueda no encuentra nada</summary><p>Revisa cobertura, vídeo, transcripción, disco, FFmpeg y EmbeddingGemma 2. Reintenta desde la biblioteca.</p></details><details><summary>Falla doblaje o subtitulado</summary><p>Comprueba diálogo, FFmpeg, OpenRouter y voz de destino. Puedes fijar <code>MEDIA_SUBTITLE_ENCODER=libx264</code>.</p></details><details><summary>El avatar no responde</summary><p>Repite las descargas de Piper y Whisper, revisa permisos y consulta <code>/api/voice/status</code>.</p></details><details><summary>Subida fallida</summary><p>Comprueba API, FFprobe, disco, límite y que la ruta de streaming sea <code>/api/videos</code>.</p></details><details><summary>Puerto ocupado</summary><pre><code>lsof -nP -iTCP:3000 -iTCP:8010 -iTCP:8001 -sTCP:LISTEN</code></pre></details></section>
+
+    <section class="doc" id="actualizar"><h2>Actualizar</h2><pre><code>git pull --ff-only
+cd services/media-core && uv sync --python 3.11 --locked --extra dev && cd ../..
+cd services/media-api && uv sync --python 3.11 --locked --extra dev && cd ../..
+cd docker/hermes-agent && uv sync --python 3.11 --locked --extra mcp && cd ../..
+cd apps/media-web && npm ci && cd ../..</code></pre><p>Revisa los cambios de <code>.env.example</code> sin sobrescribir claves. Actualiza la copia de la skill general si cambió.</p></section>
+
+    <section class="doc" id="pruebas"><h2>Pruebas</h2><pre><code>cd services/media-core && uv run --locked --extra dev pytest -q
+cd ../../services/media-api && uv run --locked --extra dev pytest -q
+cd ../../apps/media-web && npm test && npm run typecheck && npm run build</code></pre><p>Detén el servidor de desarrollo antes de compilar. Completa la prueba con material autorizado y reproducción real de los resultados.</p></section>
+
+    <section class="doc" id="datos"><h2>Datos y privacidad</h2><div class="table"><div class="row"><code>data/test-vectors/videos</code><span>Vídeos locales.</span></div><div class="row"><code>data/models</code><span>Modelos y voces.</span></div><div class="row"><code>data/indexes</code><span>Índices ChromaDB.</span></div><div class="row"><code>data/cache</code><span>Transcripciones, OCR y progreso.</span></div><div class="row"><code>data/outputs</code><span>Clips, doblajes, subtítulos y audio.</span></div><div class="row"><code>data/state</code><span>Historial, temporales y perfil Hermes.</span></div></div><p>No guardes en Git claves, entornos, pesos, vídeos, cachés, resultados ni perfiles personales. Algunas funciones envían la información necesaria a proveedores remotos.</p></section>
+
+    <section class="doc" id="checklist"><h2>Lista final</h2><ul class="checklist"><li>Herramientas y Python 3.11 disponibles.</li><li>Core, API, web y Hermes instalados desde sus locks.</li><li>Archivos de entorno con claves y rutas reales.</li><li>Perfil Hermes con modelo, skills, toolsets y MCP.</li><li>Modelos locales preparados según el uso.</li><li>Core, API y web activos; health disponible.</li><li>Vídeo corto transcrito, indexado, buscado y recortado.</li><li>Referencias, doblaje, subtítulos, voz o diarización probados si se usarán.</li></ul></section>
+    <footer><span>MedIA</span><a href="http://127.0.0.1:3000">Abrir la aplicación</a></footer>
+  </div></main>
+</div>
+<script>
+  const input=document.getElementById('search');
+  const groups=[...document.querySelectorAll('.group')];
+  input.addEventListener('input',()=>{
+    const query=input.value.trim().toLocaleLowerCase('es');
+    groups.forEach(group=>{
+      let visible=0;
+      group.querySelectorAll('a').forEach(link=>{
+        const match=(link.textContent+' '+link.dataset.keywords).toLocaleLowerCase('es').includes(query);
+        link.hidden=!match;
+        if(match) visible++;
+      });
+      group.hidden=visible===0;
+    });
+  });
+</script>
+</body>
+</html>
